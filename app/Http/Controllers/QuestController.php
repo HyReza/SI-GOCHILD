@@ -10,44 +10,45 @@ class QuestController extends Controller
 {
     public function index()
     {
-        $seo_description = "Al Jannah Preschool and Day Care adalah lembaga pendidikan anak usia dini dengan visi menjadi pusat tumbuh kembang anak, mewujudkan generasi sehat jasmani, rohani, beriman, dan berkarakter unggul. Daycare Al-Jannah menawarkan layanan pendidikan anak, kegiatan menyenangkan, serta perawatan personal untuk setiap anak.";
-        $seo_meta_title  = "Al Jannah - Preschool and Day Care";
-        $seo_title = "Al Jannah - Preschool and Day Care";
-        $seo_key = 'Daycare , DAYCARE , daycare , Al-Jannah, Al Jannah, al jannah , daycare al jannah, paud al jannah, daycare al jannah, daycare preschool, daycare untuk anak, daycare untuk bayi, daycare untuk anak-anak, daycare untuk anak usia dini, daycare untuk anak usia 0-2 tahun, daycare untuk anak usia 2-5 tahun, daycare untuk anak usia 5-8 tahun, day, al,Al Jannah Preschool, daycare anak, daycare bayi, PAUD Al Jannah, taman kanak-kanak, daycare untuk anak, daycare untuk bayi, daycare untuk anak usia dini, layanan daycare anak, daycare untuk anak usia 0-2 tahun, daycare untuk anak usia 2-5 tahun, daycare untuk anak usia 5-8 tahun, perawatan anak, pendidikan anak usia dini, pendidikan anak, pengasuhan anak, daycare terpercaya, layanan pendidikan anak, daycare di Jakarta, daycare di Indonesia, daycare terbaik, daycare dengan fasilitas lengkap, pendidikan karakter anak, pembelajaran anak usia dini, daycare ramah anak, tempat penitipan anak, taman kanak-kanak terbaik, daycare Al Jannah, preschool Al Jannah, daycare untuk anak-anak Indonesia';
+        $seo_description = "SI-GoChild adalah platform sistem pakar digital yang dirancang untuk memantau tumbuh kembang anak secara presisi. Menggunakan standar MMDST (Denver II) dan monitoring antropometri untuk mendeteksi dini gangguan perkembangan serta menyediakan laporan harian daycare yang informatif.";
+        $seo_meta_title  = "SI-GoChild - Sistem Pakar & Monitoring Tumbuh Kembang Anak";
+        $seo_title = "SI-GoChild | Solusi Cerdas Pantau Tumbuh Kembang Si Kecil";
+        $seo_key = 'SI-GoChild, si-gochild, sistem informasi anak, sistem pakar tumbuh kembang, MMDST, Denver II, skrining anak, deteksi dini perkembangan anak, monitoring gizi anak, antropometri anak, laporan harian daycare, aplikasi kesehatan anak, perkembangan motorik anak, stimulasi anak usia dini, dashboard kesehatan anak, rekam medis digital anak, KMS digital, sistem informasi daycare';
 
         return view('index', compact('seo_description', 'seo_meta_title', 'seo_title', 'seo_key'));
     }
 
     public function about()
     {
-        $seo_description = "Al Jannah Preschool and Day Care adalah lembaga pendidikan anak usia dini yang berfokus pada tumbuh kembang anak dengan pendekatan berbasis Islam, menawarkan layanan pendidikan yang menyeluruh, kasih sayang, serta penanaman nilai-nilai agama sejak dini.";
-        $seo_meta_title = "Tentang Al Jannah - Preschool and Day Care";
-        $seo_title = "Tentang Al Jannah - Preschool and Day Care";
-        $seo_key = 'apa itu al jannah daycare, apa itu daycare ,Al Jannah, daycare, preschool, pendidikan anak, daycare Al Jannah, pendidikan usia dini, PAUD, daycare terbaik,Daycare , DAYCARE , daycare , Al-Jannah, Al Jannah, al jannah , daycare al jannah, paud al jannah, daycare al jannah, daycare preschool, daycare untuk anak, daycare untuk bayi, daycare untuk anak-anak, daycare untuk anak usia dini, daycare untuk anak usia 0-2 tahun, daycare untuk anak usia 2-5 tahun, daycare untuk anak usia 5-8 tahun, day, al,Al Jannah Preschool, daycare anak, daycare bayi, PAUD Al Jannah, taman kanak-kanak, daycare untuk anak, daycare untuk bayi, daycare untuk anak usia dini, layanan daycare anak, daycare untuk anak usia 0-2 tahun, daycare untuk anak usia 2-5 tahun, daycare untuk anak usia 5-8 tahun, perawatan anak, pendidikan anak usia dini, pendidikan anak, pengasuhan anak, daycare terpercaya, layanan pendidikan anak, daycare di Jakarta, daycare di Indonesia, daycare terbaik, daycare dengan fasilitas lengkap, pendidikan karakter anak, pembelajaran anak usia dini, daycare ramah anak, tempat penitipan anak, taman kanak-kanak terbaik, daycare Al Jannah, preschool Al Jannah, daycare untuk anak-anak Indonesia, al jannah kedungwuni, daycare kedungwuni, daycare pekalongan, al jannah pekalongan';
+        $seo_description = "Pelajari misi SI-GoChild dalam membantu orang tua dan tenaga pengajar melakukan deteksi dini tumbuh kembang anak. Kami menggabungkan metodologi sistem pakar berbasis MMDST dengan teknologi informasi untuk menciptakan generasi yang sehat, cerdas, dan terpantau secara berkala.";
+        $seo_meta_title = "Tentang SI-GoChild - Inovasi Monitoring Perkembangan Anak";
+        $seo_title = "Mengenal SI-GoChild - Sistem Deteksi Dini & Monitoring";
+        $seo_key = 'apa itu si-gochild, sistem pakar denver ii, metodologi mmdst, deteksi dini anak, profil si-gochild, keunggulan si-gochild, monitoring perkembangan digital, pengembang si-gochild, sistem informasi pendidikan anak usia dini, aplikasi skrining tumbuh kembang';
 
         return view('about', compact('seo_description', 'seo_meta_title', 'seo_title', 'seo_key'));
     }
 
     public function services()
     {
-        $seo_description = "Al Jannah Preschool and Day Care menawarkan berbagai layanan edukasi dan perawatan anak yang meliputi daycare untuk bayi dan anak-anak, pijat bayi, spa khusus bayi, dan layanan konsultasi perkembangan anak. Kami berkomitmen untuk menyediakan lingkungan yang aman dan mendukung tumbuh kembang anak secara holistik.";
-        $seo_meta_title = "Layanan Al Jannah - Preschool and Day Care";
-        $seo_title = "Layanan Al Jannah - Preschool and Day Care";
-        $seo_key = 'Al Jannah, daycare, preschool, layanan anak, pijat bayi, spa bayi, daycare terbaik, layanan konsultasi anak, skrining tumbuh kembang,Daycare , DAYCARE , daycare , Al-Jannah, Al Jannah, al jannah , daycare al jannah, paud al jannah, daycare al jannah, daycare preschool, daycare untuk anak, daycare untuk bayi, daycare untuk anak-anak, daycare untuk anak usia dini, daycare untuk anak usia 0-2 tahun, daycare untuk anak usia 2-5 tahun, daycare untuk anak usia 5-8 tahun, day, al,Al Jannah Preschool, daycare anak, daycare bayi, PAUD Al Jannah, taman kanak-kanak, daycare untuk anak, daycare untuk bayi, daycare untuk anak usia dini, layanan daycare anak, daycare untuk anak usia 0-2 tahun, daycare untuk anak usia 2-5 tahun, daycare untuk anak usia 5-8 tahun, perawatan anak, pendidikan anak usia dini, pendidikan anak, pengasuhan anak, daycare terpercaya, layanan pendidikan anak, daycare di Jakarta, daycare di Indonesia, daycare terbaik, daycare dengan fasilitas lengkap, pendidikan karakter anak, pembelajaran anak usia dini, daycare ramah anak, tempat penitipan anak, taman kanak-kanak terbaik, daycare Al Jannah, preschool Al Jannah, daycare untuk anak-anak Indonesia,al jannah kedungwuni, daycare kedungwuni, daycare pekalongan, al jannah pekalongan';
+        $seo_description = "Jelajahi fitur unggulan SI-GoChild: Skrining Perkembangan Denver II (MMDST), Laporan Pertumbuhan Antropometri Otomatis, Laporan Aktivitas Harian Digital, dan Wawasan Kesehatan dari para pakar tumbuh kembang anak.";
+        $seo_meta_title = "Layanan & Fitur Unggulan - SI-GoChild";
+        $seo_title = "Fitur Sistem SI-GoChild | Skrining & Monitoring Digital";
+        $seo_key = 'layanan skrining mmdst, fitur antropometri anak, laporan harian digital, konsultasi tumbuh kembang, grafik pertumbuhan anak, kms digital, evaluasi motorik anak, skrining bahasa anak, monitoring personal sosial anak, sistem pakar daycare';
 
         return view('service', compact('seo_description', 'seo_meta_title', 'seo_title', 'seo_key'));
     }
 
     public function blogs(Request $request)
     {
-        $seo_description = "Dapatkan informasi terbaru mengenai aktivitas dan acara yang berlangsung di Al Jannah Preschool and Day Care. Jelajahi posting blog kami yang menyajikan berbagai kegiatan edukatif, bermain di luar ruangan, seni & kerajinan kreatif, dan masih banyak lagi.";
-        $seo_meta_title = "Blog Aktivitas Daycare - Al Jannah Preschool and Day Care";
-        $seo_title = "Blog Aktivitas Daycare - Al Jannah Preschool and Day Care";
-        $seo_key = 'Blog daycare, aktivitas daycare, pendidikan usia dini, bermain di luar ruangan, seni dan kerajinan untuk anak, pembelajaran preschool, blog Al Jannah daycare,Daycare , DAYCARE , daycare , Al-Jannah, Al Jannah, al jannah , daycare al jannah, paud al jannah, daycare al jannah, daycare preschool, daycare untuk anak, daycare untuk bayi, daycare untuk anak-anak, daycare untuk anak usia dini, daycare untuk anak usia 0-2 tahun, daycare untuk anak usia 2-5 tahun, daycare untuk anak usia 5-8 tahun, day, al,Al Jannah Preschool, daycare anak, daycare bayi, PAUD Al Jannah, taman kanak-kanak, daycare untuk anak, daycare untuk bayi, daycare untuk anak usia dini, layanan daycare anak, daycare untuk anak usia 0-2 tahun, daycare untuk anak usia 2-5 tahun, daycare untuk anak usia 5-8 tahun, perawatan anak, pendidikan anak usia dini, pendidikan anak, pengasuhan anak, daycare terpercaya, layanan pendidikan anak, daycare di Jakarta, daycare di Indonesia, daycare terbaik, daycare dengan fasilitas lengkap, pendidikan karakter anak, pembelajaran anak usia dini, daycare ramah anak, tempat penitipan anak, taman kanak-kanak terbaik, daycare Al Jannah, preschool Al Jannah, daycare untuk anak-anak Indonesia,al jannah kedungwuni, daycare kedungwuni, daycare pekalongan, al jannah pekalongan';
-        // Retrieve categories to populate the filter dropdown
+        $seo_description = "Pusat wawasan SI-GoChild. Temukan berbagai artikel edukatif, panduan pola asuh, tips kesehatan, dan informasi terkini seputar stimulasi tumbuh kembang anak yang ditulis oleh praktisi dan pakar.";
+        $seo_meta_title = "Wawasan & Artikel Tumbuh Kembang - SI-GoChild";
+        $seo_title = "Blog Edukasi SI-GoChild | Informasi Kesehatan & Pola Asuh";
+        $seo_key = 'blog kesehatan anak, tips pola asuh, artikel tumbuh kembang, panduan stimulasi anak, edukasi orang tua, info gizi anak, kegiatan kreatif anak, blog si-gochild, berita perkembangan anak, tips daycare';
+
+        // Menampilkan kategori untuk filter
         $categories = Category::all();
 
-        // Handle search and filter by category
+        // Logika pencarian dan filter kategori
         $query = Article::query();
 
         if ($request->has('search') && $request->search != '') {
@@ -58,48 +59,36 @@ class QuestController extends Controller
             $query->where('category_id', $request->category);
         }
 
-        // Retrieve articles based on the query with pagination
+        // Mengambil artikel dengan kategori, paginasi 9 item per halaman
         $articles = $query->with('category')->latest()->paginate(9)->appends([
             'search' => $request->search,
             'category' => $request->category
         ]);
 
-
         return view('blogs', compact('seo_description', 'seo_meta_title', 'seo_title', 'seo_key', 'articles', 'categories'));
     }
 
-    // public function blogsShow()
-    // {
-    //     $seo_description = "Dapatkan informasi terbaru mengenai aktivitas dan acara yang berlangsung di Al Jannah Preschool and Day Care. Jelajahi posting blog kami yang menyajikan berbagai kegiatan edukatif, bermain di luar ruangan, seni & kerajinan kreatif, dan masih banyak lagi.";
-    //     $seo_meta_title = "Blog Aktivitas Daycare - Al Jannah Preschool and Day Care";
-    //     $seo_title = "Blog Aktivitas Daycare - Al Jannah Preschool and Day Care";
-    //     $seo_key = 'Blog daycare, aktivitas daycare, pendidikan usia dini, bermain di luar ruangan, seni dan kerajinan untuk anak, pembelajaran preschool, blog Al Jannah daycare,Daycare , DAYCARE , daycare , Al-Jannah, Al Jannah, al jannah , daycare al jannah, paud al jannah, daycare al jannah, daycare preschool, daycare untuk anak, daycare untuk bayi, daycare untuk anak-anak, daycare untuk anak usia dini, daycare untuk anak usia 0-2 tahun, daycare untuk anak usia 2-5 tahun, daycare untuk anak usia 5-8 tahun, day, al,Al Jannah Preschool, daycare anak, daycare bayi, PAUD Al Jannah, taman kanak-kanak, daycare untuk anak, daycare untuk bayi, daycare untuk anak usia dini, layanan daycare anak, daycare untuk anak usia 0-2 tahun, daycare untuk anak usia 2-5 tahun, daycare untuk anak usia 5-8 tahun, perawatan anak, pendidikan anak usia dini, pendidikan anak, pengasuhan anak, daycare terpercaya, layanan pendidikan anak, daycare di Jakarta, daycare di Indonesia, daycare terbaik, daycare dengan fasilitas lengkap, pendidikan karakter anak, pembelajaran anak usia dini, daycare ramah anak, tempat penitipan anak, taman kanak-kanak terbaik, daycare Al Jannah, preschool Al Jannah, daycare untuk anak-anak Indonesia,al jannah kedungwuni, daycare kedungwuni, daycare pekalongan, al jannah pekalongan';
-
-    //     return view('blogs.blogs-show.index', compact('seo_description', 'seo_meta_title', 'seo_title', 'seo_key'));
-    // }
-
     public function blogsShow($slug)
     {
-
-        $seo_description = "Dapatkan informasi terbaru mengenai aktivitas dan acara yang berlangsung di Al Jannah Preschool and Day Care. Jelajahi posting blog kami yang menyajikan berbagai kegiatan edukatif, bermain di luar ruangan, seni & kerajinan kreatif, dan masih banyak lagi.";
-        $seo_meta_title = "Blog Aktivitas Daycare - Al Jannah Preschool and Day Care";
-        $seo_title = "Blog Aktivitas Daycare - Al Jannah Preschool and Day Care";
-        $seo_key = 'Blog daycare, aktivitas daycare, pendidikan usia dini, bermain di luar ruangan, seni dan kerajinan untuk anak, pembelajaran preschool, blog Al Jannah daycare,Daycare , DAYCARE , daycare , Al-Jannah, Al Jannah, al jannah , daycare al jannah, paud al jannah, daycare al jannah, daycare preschool, daycare untuk anak, daycare untuk bayi, daycare untuk anak-anak, daycare untuk anak usia dini, daycare untuk anak usia 0-2 tahun, daycare untuk anak usia 2-5 tahun, daycare untuk anak usia 5-8 tahun, day, al,Al Jannah Preschool, daycare anak, daycare bayi, PAUD Al Jannah, taman kanak-kanak, daycare untuk anak, daycare untuk bayi, daycare untuk anak usia dini, layanan daycare anak, daycare untuk anak usia 0-2 tahun, daycare untuk anak usia 2-5 tahun, daycare untuk anak usia 5-8 tahun, perawatan anak, pendidikan anak usia dini, pendidikan anak, pengasuhan anak, daycare terpercaya, layanan pendidikan anak, daycare di Jakarta, daycare di Indonesia, daycare terbaik, daycare dengan fasilitas lengkap, pendidikan karakter anak, pembelajaran anak usia dini, daycare ramah anak, tempat penitipan anak, taman kanak-kanak terbaik, daycare Al Jannah, preschool Al Jannah, daycare untuk anak-anak Indonesia,al jannah kedungwuni, daycare kedungwuni, daycare pekalongan, al jannah pekalongan';
-
-        // Find the article by slug
+        // Mencari artikel berdasarkan slug
         $article = Article::where('slug', $slug)->firstOrFail();
 
-        // Load the article with its category and user (author) details
+        // SEO dinamis berdasarkan judul dan isi artikel
+        $seo_description = \Illuminate\Support\Str::limit(strip_tags($article->content), 160);
+        $seo_meta_title = $article->title . " - SI-GoChild";
+        $seo_title = $article->title . " | Artikel SI-GoChild";
+        $seo_key = $article->category->category_name . ", " . $article->title . ", artikel si-gochild, informasi tumbuh kembang";
+
+        // Load relasi kategori dan penulis
         $article->load('category', 'user');
 
-        // Fetch related articles based on the same category
+        // Mengambil artikel terkait dalam kategori yang sama (kecuali artikel ini sendiri)
         $relatedArticles = Article::where('category_id', $article->category_id)
             ->where('id', '!=', $article->id)
             ->latest()
             ->take(3)
             ->get();
 
-        // Return the view with the article and related articles
         return view('blogs.blogs-show.index', compact('seo_description', 'seo_meta_title', 'seo_title', 'seo_key', 'article', 'relatedArticles'));
     }
 }
