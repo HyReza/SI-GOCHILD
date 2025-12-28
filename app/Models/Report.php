@@ -11,43 +11,39 @@ class Report extends Model
 
     protected $guarded = [];
 
+    // CASTING TIPE DATA
     protected $casts = [
-        'attendance_summary' => 'json', // Otomatis cast ke/dari JSON
         'start_date' => 'date',
-        'end_date' => 'date',
+        'end_date'   => 'date',
+        'report_date' => 'date',
+        'attendance_summary' => 'array', // PENTING: Otomatis ubah JSON di DB jadi Array PHP
+        'height' => 'decimal:2',
+        'weight' => 'decimal:2',
     ];
 
-    // Relasi ke siswa pemilik rapor
+    // RELASI
+    public function student()
+    {
+        return $this->belongsTo(Student::class);
+    }
 
     public function activityTransaction()
     {
         return $this->belongsTo(ActivityTransaction::class);
     }
 
-    public function student()
-    {
-        return $this->belongsTo(Student::class);
-    }
-
-    // Relasi ke guru yang membuat rapor
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    // Relasi ke detail-detail penilaian
+    // Detail Checklist Materi
     public function details()
     {
         return $this->hasMany(ReportDetail::class);
     }
 
-    // Relasi ke catatan per tema
-    public function themeNotes()
-    {
-        return $this->hasMany(ReportThemeNote::class);
-    }
-
-    // Relasi ke data kesehatan
+    // Detail Kesehatan
     public function healthDetails()
     {
         return $this->hasMany(ReportHealthDetail::class);

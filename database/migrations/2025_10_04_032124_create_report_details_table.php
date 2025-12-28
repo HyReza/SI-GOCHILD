@@ -13,22 +13,40 @@ return new class extends Migration
     {
         Schema::create('report_details', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('report_id')->constrained('reports')->onDelete('cascade');
 
-            // Tiga kolom ini menampung ID dari item yang dinilai.
-            // Semuanya dibuat nullable karena hanya salah satu (atau kombinasi) yang akan diisi di setiap baris.
+            // Relasi ke Tabel Report Utama
+            $table->foreignId('report_id')
+                ->constrained('reports')
+                ->onDelete('cascade');
 
-            // Untuk menyimpan skor level TEMA
-            $table->foreignId('theme_id')->nullable()->constrained('themes')->onDelete('cascade');
+            // Item yang dinilai (Materi)
+            // Wajib diisi (tidak nullable) karena ini inti dari baris penilaian
+            $table->foreignId('material_id')
+                ->constrained('materials')
+                ->onDelete('cascade');
 
-            // Untuk menyimpan skor level SUB-TEMA dan MATERI
-            $table->foreignId('sub_theme_id')->nullable()->constrained('sub_themes')->onDelete('cascade');
+            // Konteks Hierarchy (Tema & Sub-tema)
+            // Disimpan sebagai referensi (cache) agar query cetak raport lebih cepat
+            // Boleh nullable jika suatu saat ada materi di luar sub-tema, tapi sebaiknya diisi otomatis oleh Controller
+            $table->foreignId('theme_id')
+                ->nullable()
+                ->constrained('themes')
+                ->onDelete('cascade');
 
-            // Untuk menyimpan skor level MATERI
-            $table->foreignId('material_id')->nullable()->constrained('materials')->onDelete('cascade');
+            $table->foreignId('sub_theme_id')
+                ->nullable()
+                ->constrained('sub_themes')
+                ->onDelete('cascade');
 
-            // Kolom penilaiannya
+            // Skor Penilaian
             $table->enum('score', ['BB', 'MB', 'BSH', 'BSB']);
+
+            $table->timestamps();
+
+            // --- OPTIMASI PENTING (UNIQUE CONSTRAINT) ---
+            // Kode ini mencegah duplikasi data.
+            // Artinya: Dalam 1 No. Raport, Materi "X" hanya boleh punya 1 nilai.
+            $table->unique(['report_id', 'material_id']);
         });
     }
 

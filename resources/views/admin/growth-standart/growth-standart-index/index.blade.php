@@ -33,69 +33,74 @@
     @endif
 
     {{-- Header Aksi + Filter --}}
-    <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        {{-- Tombol Aksi (responsif) --}}
-        <div class="flex flex-wrap gap-2">
+    <div
+        class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between bg-white/50 dark:bg-slate-900/50 p-4 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
+
+        {{-- Kelompok Tombol Aksi (Kiri) --}}
+        <div class="flex flex-wrap gap-2 order-2 lg:order-1">
             <button onclick="openModalCreate()"
-                class="flex items-center justify-center gap-2 font-semibold bg-green-500 dark:bg-green-600 h-10 px-4 rounded-lg shadow-md hover:bg-green-600 dark:hover:bg-green-700 text-white w-full sm:w-auto">
-                <span class="text-xs">Tambah Data</span>
-                <span class="material-symbols-outlined text-xs">add</span>
+                class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 h-11 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-95">
+                <span>Tambah Data</span>
+                <span class="material-symbols-outlined text-sm">add_circle</span>
             </button>
 
             <button onclick="openImportModal()"
-                class="flex items-center justify-center gap-2 font-semibold bg-amber-500 dark:bg-amber-600 h-10 px-4 rounded-lg shadow-md hover:bg-amber-600 dark:hover:bg-amber-700 text-white w-full sm:w-auto">
-                <span class="text-xs">Import Excel</span>
-                <span class="material-symbols-outlined text-xs">upload_file</span>
+                class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 h-11 bg-amber-500 hover:bg-amber-600 text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-amber-500/20 transition-all active:scale-95">
+                <span>Import</span>
+                <span class="material-symbols-outlined text-sm">upload_file</span>
             </button>
 
             <a href="{{ route('growth-standards.index') }}"
-                class="flex items-center justify-center gap-2 font-semibold bg-gray-200 dark:bg-gray-700 h-10 px-4 rounded-lg shadow-md hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white w-full sm:w-auto">
-                <span class="text-xs">Reset Filter</span>
-                <span class="material-symbols-outlined text-xs">filter_alt_off</span>
+                class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 h-11 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+                <span class="material-symbols-outlined text-sm">filter_alt_off</span>
             </a>
         </div>
 
-        {{-- Form Filter (tanpa search) --}}
+        {{-- Kelompok Form Filter (Kanan) --}}
         <form method="GET" action="{{ route('growth-standards.index') }}"
-            class="grid grid-cols-2 md:flex md:flex-wrap gap-2 w-full md:w-auto">
+            class="flex-1 grid grid-cols-2 md:flex md:flex-wrap lg:justify-end gap-2 order-1 lg:order- order-2 w-full">
 
-            {{-- Parameter sesuai Excel --}}
-            <select name="parameter"
-                class="h-10 border bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 rounded-lg px-8 w-full md:w-auto focus:outline-none focus:ring-2 focus:ring-blue-400 dark:text-white">
-                <option value="" {{ request('parameter') === '' ? 'selected' : '' }}>Semua Parameter</option>
-                @foreach (['BB/U', 'TB/U', 'PB/U', 'IMT/U', 'PB/BB', 'TB/BB'] as $p)
-                    <option value="{{ $p }}" {{ request('parameter') === $p ? 'selected' : '' }}>
-                        {{ $p }}</option>
-                @endforeach
-            </select>
+            <div class="relative flex-1 md:min-w-[140px]">
+                <select name="parameter"
+                    class="w-full h-11 pl-4 pr-10 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 border appearance-none cursor-pointer transition-all">
+                    <option value="">Semua Parameter</option>
+                    @foreach (['BB/U', 'TB/U', 'PB/U', 'IMT/U', 'PB/BB', 'TB/BB'] as $p)
+                        <option value="{{ $p }}" {{ request('parameter') === $p ? 'selected' : '' }}>
+                            {{ $p }}</option>
+                    @endforeach
+                </select>
+                <span
+                    class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm">expand_more</span>
+            </div>
 
-            <select name="gender"
-                class="h-10 border bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 rounded-lg px-8 w-full md:w-auto focus:outline-none focus:ring-2 focus:ring-blue-400 dark:text-white">
-                <option value="" {{ request('gender') === '' ? 'selected' : '' }}>Semua Jenis Kelamin</option>
-                <option value="male" {{ request('gender') === 'male' ? 'selected' : '' }}>male</option>
-                <option value="female" {{ request('gender') === 'female' ? 'selected' : '' }}>female</option>
-            </select>
+            <div class="relative flex-1 md:min-w-[120px]">
+                <select name="gender"
+                    class="w-full h-11 pl-4 pr-10 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 border appearance-none cursor-pointer transition-all">
+                    <option value="">Semua Gender</option>
+                    <option value="male" {{ request('gender') === 'male' ? 'selected' : '' }}>Male</option>
+                    <option value="female" {{ request('gender') === 'female' ? 'selected' : '' }}>Female</option>
+                </select>
+                <span
+                    class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm">expand_more</span>
+            </div>
 
-            <select name="reference_type"
-                class="h-10 border bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 rounded-lg px-8 w-full md:w-auto focus:outline-none focus:ring-2 focus:ring-blue-400 dark:text-white">
-                <option value="" {{ request('reference_type') === '' ? 'selected' : '' }}>Semua Referensi</option>
-                <option value="age" {{ request('reference_type') === 'age' ? 'selected' : '' }}>age (umur/bulan)
-                </option>
-                <option value="length" {{ request('reference_type') === 'length' ? 'selected' : '' }}>length (panjang)
-                </option>
-                <option value="height" {{ request('reference_type') === 'height' ? 'selected' : '' }}>height (tinggi)
-                </option>
-            </select>
-
-            <select name="is_active"
-                class="h-10 border bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 rounded-lg px-8 w-full md:w-auto focus:outline-none focus:ring-2 focus:ring-blue-400 dark:text-white">
-                <option value="" {{ request('is_active') === '' ? 'selected' : '' }}>Semua Status</option>
-                <option value="1" {{ request('is_active') === '1' ? 'selected' : '' }}>Aktif</option>
-                <option value="0" {{ request('is_active') === '0' ? 'selected' : '' }}>Nonaktif</option>
-            </select>
+            <div class="relative flex-1 md:min-w-[140px] col-span-2 md:col-span-1">
+                <select name="reference_type"
+                    class="w-full h-11 pl-4 pr-10 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 border appearance-none cursor-pointer transition-all">
+                    <option value="">Semua Referensi</option>
+                    <option value="age" {{ request('reference_type') === 'age' ? 'selected' : '' }}>Age (Umur)
+                    </option>
+                    <option value="length" {{ request('reference_type') === 'length' ? 'selected' : '' }}>Length
+                        (Panjang)</option>
+                    <option value="height" {{ request('reference_type') === 'height' ? 'selected' : '' }}>Height
+                        (Tinggi)</option>
+                </select>
+                <span
+                    class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm">expand_more</span>
+            </div>
 
             <button type="submit"
-                class="h-10 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg w-full md:w-auto">
+                class="h-11 px-6 bg-slate-900 dark:bg-emerald-500 text-white dark:text-slate-900 text-xs font-black uppercase tracking-[0.2em] rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg col-span-2 md:col-span-1">
                 Terapkan
             </button>
         </form>

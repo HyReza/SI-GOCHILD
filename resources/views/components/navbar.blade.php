@@ -1,140 +1,161 @@
-<header x-data="{ isOpen: false }" :class="{ 'dark': window.matchMedia('(prefers-color-scheme: dark)').matches }"
-    id="navbar"
-    class="bg-white dark:bg-gray-900 dark:text-white fixed w-full top-0 left-0 z-50 transition-all ease-in-out duration-500">
-    <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
-        <div class="flex h-16 items-center justify-between">
-            <!-- Logo Section -->
-            <div class="md:flex md:items-center md:gap-12">
-                <a class="block" href="#">
-                    <span class="sr-only">Beranda</span>
-                    <img src="{{ asset('images/logo.svg') }}" alt="logo" class="h-16">
+<header x-data="{
+    isOpen: false,
+    scrolled: false,
+    init() {
+        window.addEventListener('scroll', () => {
+            this.scrolled = window.scrollY > 20;
+        })
+    }
+}" id="navbar"
+    :class="{
+        'bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60 shadow-xl': scrolled,
+        'bg-transparent border-b border-transparent': !scrolled
+    }"
+    class="fixed w-full top-0 left-0 z-[9999] transition-all duration-500 ease-in-out">
+
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-20 items-center justify-between">
+
+            <div class="flex-shrink-0 transition-transform duration-500 hover:scale-105">
+                <a class="block interactive flex items-center gap-3" href="{{ route('quest.index') }}">
+                    <img src="{{ asset('images/logo.png') }}" alt="logo" class="h-7 w-auto">
                 </a>
             </div>
 
-            <!-- Navbar Links Section -->
-            <nav class="hidden md:block" aria-label="Main Navigation">
-                <ul class="flex items-center gap-6 text-sm">
-                    <li>
-                        <a class="{{ request()->is('/', 'login') ? 'text-orange-500 font-bold dark:text-orange-500 dark:font-bold' : 'text-gray-500 dark:text-gray-300' }} transition hover:text-orange-500 dark:hover:text-orange-500 ease-in duration-300"
-                            href="{{ route('quest.index') }}">Beranda</a>
-                    </li>
-                    <li>
-                        <a class="{{ request()->is('tentang-kami') ? 'text-orange-500 font-bold dark:text-orange-500 dark:font-bold' : 'text-gray-500 dark:text-gray-300' }} transition hover:text-orange-500 dark:hover:text-orange-500 ease-in duration-300"
-                            href="{{ route('quest.about') }}">Tentang Kami</a>
-                    </li>
-                    <li>
-                        <a class="{{ request()->is('layanan-kami') ? 'text-orange-500 font-bold dark:text-orange-500 dark:font-bold' : 'text-gray-500 dark:text-gray-300' }} transition hover:text-orange-500 dark:hover:text-orange-500 ease-in duration-300"
-                            href="{{ route('quest.service') }}">Layanan</a>
-                    </li>
-                    <li>
-                        <a class="{{ request()->is('blogs', 'blogs/*') ? 'text-orange-500 font-bold dark:text-orange-500 dark:font-bold' : 'text-gray-500 dark:text-gray-300' }} transition hover:text-orange-500 dark:hover:text-orange-500 ease-in duration-300"
-                            href="{{ route('blogs.index') }}">Blogs</a>
-                    </li>
-                </ul>
-            </nav>
+            <div class="hidden md:flex md:items-center md:gap-10">
+                <nav aria-label="Main Navigation">
+                    <ul class="flex items-center gap-8 text-[13px] font-bold uppercase tracking-widest">
+                        <li>
+                            <a class="interactive relative py-2 transition-all duration-300 {{ request()->is('/', 'login') ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-500' }} group"
+                                href="{{ route('quest.index') }}">
+                                Beranda
+                                <span
+                                    class="absolute bottom-0 left-0 w-full h-0.5 bg-emerald-500 transform {{ request()->is('/', 'login') ? 'scale-x-100' : 'scale-x-0' }} group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="interactive relative py-2 transition-all duration-300 {{ request()->is('tentang-kami') ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-500' }} group"
+                                href="{{ route('quest.about') }}">
+                                Tentang Kami
+                                <span
+                                    class="absolute bottom-0 left-0 w-full h-0.5 bg-emerald-500 transform {{ request()->is('tentang-kami') ? 'scale-x-100' : 'scale-x-0' }} group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="interactive relative py-2 transition-all duration-300 {{ request()->is('layanan-kami') ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-500' }} group"
+                                href="{{ route('quest.service') }}">
+                                Layanan
+                                <span
+                                    class="absolute bottom-0 left-0 w-full h-0.5 bg-emerald-500 transform {{ request()->is('layanan-kami') ? 'scale-x-100' : 'scale-x-0' }} group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="interactive relative py-2 transition-all duration-300 {{ request()->is('blogs', 'blogs/*') ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-500' }} group"
+                                href="{{ route('blogs.index') }}">
+                                Blogs
+                                <span
+                                    class="absolute bottom-0 left-0 w-full h-0.5 bg-emerald-500 transform {{ request()->is('blogs', 'blogs/*') ? 'scale-x-100' : 'scale-x-0' }} group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
 
-            <!-- Auth / Dashboard Section -->
-            <div class="sm:flex sm:gap-4">
-                @if (Route::has('login'))
-                    @if (Auth::guard('web')->check())
-                        <a class="rounded-md bg-orange-500 hover:bg-orange-600 text-white px-5 md:px-8 lg:px-10 py-2.5 text-sm font-medium shadow dark:bg-orange-600 dark:hover:bg-orange-700 dark:text-gray-200 ease-in duration-300"
-                            href="{{ route('dashboard') }}">
-                            Dashboard
-                        </a>
-                    @elseif(Auth::guard('student')->check())
-                        <a class="rounded-md bg-orange-500 hover:bg-orange-600 text-white px-5 md:px-8 lg:px-10 py-2.5 text-sm font-medium shadow dark:bg-orange-600 dark:hover:bg-orange-700 dark:text-gray-200 ease-in duration-300"
+                <div class="flex items-center gap-4 border-l border-slate-200 dark:border-slate-800 pl-8">
+                    @if (Auth::guard('web')->check() || Auth::guard('student')->check())
+                        <a class="interactive px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-black tracking-widest uppercase rounded-xl shadow-xl hover:scale-105 active:scale-95 transition-all"
                             href="{{ route('dashboard') }}">
                             Dashboard
                         </a>
                     @else
-                        <a class="rounded-md bg-orange-500 hover:bg-orange-600 text-white px-5 md:px-8 lg:px-10 py-2.5 text-sm font-medium shadow dark:bg-orange-600 dark:hover:bg-orange-700 dark:text-gray-200 ease-in duration-300"
+                        <a class="interactive px-8 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black tracking-widest uppercase rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-105 active:scale-95 transition-all"
                             href="{{ route('login') }}">
                             Login
                         </a>
                     @endif
-                @endif
+                </div>
             </div>
 
-            <!-- Mobile Menu Toggle -->
-            <div class="block md:hidden">
+            <div class="flex items-center md:hidden">
                 <button @click="isOpen = !isOpen"
-                    class="rounded bg-gray-100 p-2 text-gray-600 transition hover:text-gray-600/75 dark:bg-gray-800 dark:text-gray-300 dark:hover:text-gray-300/75">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2">
+                    class="interactive p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 transition-all active:scale-90">
+                    <svg x-show="!isOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                    <svg x-show="isOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Mobile Menu Section -->
     <div x-show="isOpen" x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100"
-        x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 transform scale-100"
-        x-transition:leave-end="opacity-0 transform scale-95"
-        class="md:hidden bg-white shadow-lg rounded-lg mt-2 p-4 dark:bg-gray-800">
+        x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0"
+        x-transition:leave-end="opacity-0 -translate-y-4"
+        class="md:hidden absolute top-full left-0 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border-b border-slate-200 dark:border-slate-800 shadow-2xl p-6"
+        x-cloak>
+
         <nav aria-label="Mobile Navigation">
-            <ul class="flex flex-col items-center gap-4 text-sm">
+            <ul class="flex flex-col gap-6 text-center">
                 <li>
-                    <a class="{{ request()->is('/', 'login') ? 'text-orange-500 font-semibold dark:text-orange-600 dark:font-semibold' : 'text-gray-70 dark:text-gray-300' }} transition hover:text-orange-500 dark:hover:text-orange-700"
-                        href="/">Beranda</a>
+                    <a class="block text-sm font-bold uppercase tracking-[0.2em] {{ request()->is('/', 'login') ? 'text-emerald-600' : 'text-slate-600 dark:text-slate-400' }}"
+                        href="{{ route('quest.index') }}" @click="isOpen = false">Beranda</a>
                 </li>
                 <li>
-                    <a class="{{ request()->is('tentang-kami') ? 'text-orange-500 font-semibold dark:text-orange-600 dark:font-semibold' : 'text-gray-70 dark:text-gray-300' }} transition hover:text-orange-500 dark:hover:text-orange-700"
-                        href="/tentang-kami">Tentang Kami</a>
+                    <a class="block text-sm font-bold uppercase tracking-[0.2em] {{ request()->is('tentang-kami') ? 'text-emerald-600' : 'text-slate-600 dark:text-slate-400' }}"
+                        href="{{ route('quest.about') }}" @click="isOpen = false">Tentang Kami</a>
                 </li>
                 <li>
-                    <a class="{{ request()->is('layanan-kami') ? 'text-orange-500 font-semibold dark:text-orange-600 dark:font-semibold' : 'text-gray-70 dark:text-gray-300' }} transition hover:text-orange-500 dark:hover:text-orange-700"
-                        href="/layanan-kami">Layanan Kami</a>
+                    <a class="block text-sm font-bold uppercase tracking-[0.2em] {{ request()->is('layanan-kami') ? 'text-emerald-600' : 'text-slate-600 dark:text-slate-400' }}"
+                        href="{{ route('quest.service') }}" @click="isOpen = false">Layanan</a>
                 </li>
                 <li>
-                    <a class="{{ request()->is('blogs') ? 'text-orange-500 font-semibold dark:text-orange-600 dark:font-semibold' : 'text-gray-70 dark:text-gray-300' }} transition hover:text-orange-500 dark:hover:text-orange-700"
-                        href="/blogs">Blogs</a>
+                    <a class="block text-sm font-bold uppercase tracking-[0.2em] {{ request()->is('blogs', 'blogs/*') ? 'text-emerald-600' : 'text-slate-600 dark:text-slate-400' }}"
+                        href="{{ route('blogs.index') }}" @click="isOpen = false">Blogs</a>
+                </li>
+                <li class="pt-4 border-t border-slate-100 dark:border-slate-800">
+                    @if (Auth::guard('web')->check() || Auth::guard('student')->check())
+                        <a class="block py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-2xl"
+                            href="{{ route('dashboard') }}">DASHBOARD</a>
+                    @else
+                        <a class="block py-4 bg-emerald-600 text-white font-black rounded-2xl"
+                            href="{{ route('login') }}">LOGIN SISTEM</a>
+                    @endif
                 </li>
             </ul>
         </nav>
     </div>
 </header>
 
-<!-- Scroll to Top Button -->
 <button id="scrollToTopBtn"
-    class="fixed z-50 bottom-6 right-6 bg-orange-500 text-white rounded-full shadow-lg transform transition-all ease-in-out duration-300 hover:scale-110 hover:shadow-xl focus:outline-none opacity-0 pointer-events-none">
-    <span class="material-symbols-outlined p-3">
-        arrow_upward
+    class="fixed z-[9998] bottom-8 right-8 w-14 h-14 bg-emerald-600 text-white rounded-2xl shadow-[0_20px_40px_rgba(16,185,129,0.4)] flex items-center justify-center transform transition-all duration-500 hover:scale-110 active:scale-90 opacity-0 pointer-events-none group interactive">
+    <span class="material-symbols-outlined transition-transform group-hover:-translate-y-1">
+        north
     </span>
 </button>
 
 <script>
-    let lastScrollTop = 0; // Track scroll position
-    const navbar = document.getElementById('navbar');
-    const scrollToTopBtn = document.getElementById("scrollToTopBtn");
+    document.addEventListener('DOMContentLoaded', () => {
+        const scrollToTopBtn = document.getElementById("scrollToTopBtn");
 
-    // Fungsi untuk menangani scroll
-    window.onscroll = function() {
-        // Scroll ke bawah: tambahkan shadow ke navbar jika sudah scroll lebih dari 100px
-        if (window.pageYOffset > 100) {
-            navbar.classList.add("shadow-lg");
-            navbar.classList.add("shadow-md");
-            scrollToTopBtn.classList.remove("opacity-0", "pointer-events-none");
-            scrollToTopBtn.classList.add("opacity-100", "pointer-events-auto");
-        } else {
-            // Scroll ke atas: hilangkan shadow pada navbar
-            navbar.classList.remove("shadow-lg");
-            navbar.classList.remove("shadow-md");
-            scrollToTopBtn.classList.add("opacity-0", "pointer-events-none");
-            scrollToTopBtn.classList.remove("opacity-100", "pointer-events-auto");
-        }
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollToTopBtn.classList.remove("opacity-0", "pointer-events-none", "translate-y-10");
+                scrollToTopBtn.classList.add("opacity-100", "pointer-events-auto", "translate-y-0");
+            } else {
+                scrollToTopBtn.classList.add("opacity-0", "pointer-events-none", "translate-y-10");
+                scrollToTopBtn.classList.remove("opacity-100", "pointer-events-auto", "translate-y-0");
+            }
+        });
 
-        lastScrollTop = window.pageYOffset <= 0 ? 0 : window
-            .pageYOffset; // Mencegah scroll ke atas menyebabkan masalah
-    };
-
-    // Fungsi untuk scroll ke atas saat tombol diklik
-    document.getElementById("scrollToTopBtn").addEventListener("click", function() {
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
+        scrollToTopBtn.addEventListener("click", () => {
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
         });
     });
 </script>

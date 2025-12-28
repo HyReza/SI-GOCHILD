@@ -11,8 +11,13 @@ class Theme extends Model
 
     protected $guarded = [];
 
-    public function subtheme()
+    // public function subtheme()
+    // {
+    //     return $this->hasMany(SubTheme::class);
+    // }
+
+    public function subThemes()
     {
-        return $this->hasMany(SubTheme::class);
+        return $this->hasMany(SubTheme::class, 'theme_id');
     }
 }

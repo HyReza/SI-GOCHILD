@@ -1,6 +1,48 @@
 <x-app-layout>
     <x-slot:title>Edit Penilaian MMDST</x-slot:title>
 
+    {{-- Style Khusus (Sama dengan Create) --}}
+    <style>
+        /* Textarea Auto-Expand */
+        textarea.auto-expand {
+            min-height: 80px;
+            overflow-y: hidden;
+            resize: none;
+            transition: height 0.1s ease;
+        }
+
+        /* Transisi halus */
+        tr.param-row {
+            transition: background-color 0.2s;
+        }
+
+        /* Baris TIDAK Dicentang (Disabled) - Tetap Terbaca Jelas */
+        tr.row-disabled {
+            background-color: #f9fafb;
+            /* gray-50 */
+            color: #4b5563;
+            /* gray-600 */
+        }
+
+        .dark tr.row-disabled {
+            background-color: #1f2937;
+            /* gray-800 */
+            color: #9ca3af;
+        }
+
+        /* Baris AKTIF (Dicentang) */
+        tr.row-active {
+            background-color: #ffffff;
+            color: #111827;
+        }
+
+        .dark tr.row-active {
+            background-color: #111827;
+            /* gray-900 */
+            color: #f9fafb;
+        }
+    </style>
+
     {{-- SweetAlert Error --}}
     @if ($errors->any())
         <script>
@@ -15,45 +57,54 @@
     @endif
 
     @php
-        // ==== Fallback & helper ====
         /** @var \App\Models\MmdstAssessment $mmdst_assessment */
-        $selectedStudent = $mmdst_assessment->student ?? null;
+        $student = $mmdst_assessment->student;
+
+        // Data Existing Form
+        $assessmentDateValue = old('assessment_date', $mmdst_assessment->assessment_date->format('Y-m-d'));
+        $notesValue = old('notes', $mmdst_assessment->notes);
+
         $studentIsNormal = isset($studentIsNormal) ? (bool) $studentIsNormal : true;
-        $ageInDays = isset($ageInDays) ? (int) $ageInDays : (int) ($mmdst_assessment->age_in_days ?? 0);
+        $ageInDays = isset($ageInDays) ? (int) $ageInDays : (int) $mmdst_assessment->age_in_days;
+
         $filtered_categories = $filtered_categories ?? collect();
-        // existing = Collection keyed by mmdst_parameter_id
-        $previousMap = ($existing ?? collect())->mapWithKeys(function ($it) {
-            return [
-                $it->mmdst_parameter_id => [
-                    'result_code' => $it->result_code,
-                    'note' => (string) $it->note,
-                ],
-            ];
-        });
-        $assessmentDate = optional($mmdst_assessment->assessment_date)->toDateString() ?? now()->toDateString();
         $todayISO = now()->toDateString();
 
-        function bucketOf($age, $p25, $p100)
+        // Data item existing (KeyBy ID Parameter)
+        $existingItems = $existing ?? collect();
+
+        // --- LOGIKA BUCKET USIA ---
+        function bucketOf($age, $p25, $p75, $p100)
         {
-            if (is_null($p25) || is_null($p100)) {
-                return 'NOT_YET';
-            }
+            $p25 = (int) $p25;
+            $p75 = (int) $p75;
+            $p100 = (int) $p100;
+
             if ($age < $p25) {
                 return 'NOT_YET';
             }
             if ($age > $p100) {
                 return 'OVERDUE';
             }
-            if ($age == $p25 || $age == $p100) {
+            if ($age >= $p75 && $age <= $p100) {
+                return 'CRITICAL';
+            }
+            if ($age == $p25) {
                 return 'AT_LINE';
             }
             return 'IN_WINDOW';
         }
-        $bucketText = [
-            'OVERDUE' => 'Lewat Usia',
-            'AT_LINE' => 'Di Garis Usia',
-            'IN_WINDOW' => 'Rentang Usia',
-            'NOT_YET' => 'Belum Waktunya',
+
+        // Konfigurasi Tampilan Bucket
+        $bucketConfig = [
+            'OVERDUE' => ['label' => 'Lewat Usia', 'class' => 'bg-red-100 text-red-700'],
+            'AT_LINE' => ['label' => 'Di Garis Usia', 'class' => 'bg-blue-600 text-white font-bold'],
+            'IN_WINDOW' => ['label' => 'Rentang Usia', 'class' => 'bg-blue-100 text-blue-700'],
+            'CRITICAL' => [
+                'label' => 'Zona Kritis',
+                'class' => 'bg-orange-100 text-orange-800 font-bold border border-orange-200',
+            ],
+            'NOT_YET' => ['label' => 'Belum Waktunya', 'class' => 'bg-gray-200 text-gray-700'],
         ];
     @endphp
 
@@ -62,23 +113,27 @@
         @csrf
         @method('PUT')
 
-        {{-- Data Penilaian --}}
+        {{-- === KARTU 1: DATA PENILAIAN === --}}
         <div class="p-6 bg-white dark:bg-gray-900 rounded-md shadow">
-            <h2 class="font-semibold mb-4">Data Penilaian</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6"> {{-- Grid responsive: 1 kolom untuk mobile, 2 kolom untuk desktop --}}
+            <h2 class="font-semibold mb-4 text-gray-800 dark:text-gray-200">Edit Data Penilaian</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                {{-- Identitas siswa (fix, tidak dropdown) --}}
+                {{-- Identitas Siswa (Readonly) --}}
                 <div class="md:col-span-1">
-                    <label class="block text-sm mb-1">Siswa</label>
-                    <div class="h-10 flex items-center px-3 border rounded-lg dark:bg-gray-900 dark:border-gray-700">
-                        <span class="font-medium">{{ $selectedStudent?->student_name ?? '—' }}</span>
+                    <label class="block text-sm mb-1 text-gray-700 dark:text-gray-300">Siswa</label>
+                    <div
+                        class="h-10 flex items-center px-3 border rounded-lg dark:bg-gray-800 dark:border-gray-700 bg-gray-100 cursor-not-allowed">
+                        <span
+                            class="font-medium text-gray-600 dark:text-gray-400">{{ $student?->student_name ?? '—' }}</span>
                     </div>
-                    <input type="hidden" name="student_id" id="student_id" value="{{ $selectedStudent?->id }}">
-                    @if ($selectedStudent)
+                    {{-- Hidden ID untuk AJAX Filter --}}
+                    <input type="hidden" name="student_id" id="student_id" value="{{ $student?->id }}">
+
+                    @if ($student)
                         <div class="text-[11px] text-gray-500 mt-1">
-                            NIS: {{ $selectedStudent->student_number ?? '—' }} •
+                            NIS: {{ $student->student_number ?? '-' }} •
                             Tgl Lahir:
-                            {{ $selectedStudent->birth_date ? \Illuminate\Support\Carbon::parse($selectedStudent->birth_date)->format('d M Y') : '—' }}
+                            {{ $student->birth_date ? \Illuminate\Support\Carbon::parse($student->birth_date)->format('d M Y') : '-' }}
                         </div>
                     @endif
                     <p class="text-[11px] text-gray-500 mt-1">
@@ -86,181 +141,256 @@
                     </p>
                 </div>
 
-                {{-- Tanggal + usia dinamis --}}
+                {{-- Tanggal --}}
                 <div class="md:col-span-1">
-                    <label class="block text-sm mb-1">Tanggal Penilaian</label>
-                    <input type="date" name="assessment_date" id="assessment_date"
-                        value="{{ old('assessment_date', $todayISO, $assessmentDate) }}"
+                    <label class="block text-sm mb-1 text-gray-700 dark:text-gray-300">Tanggal Penilaian</label>
+                    <input type="date" name="assessment_date" id="assessment_date" value="{{ $assessmentDateValue }}"
                         class="w-full border rounded-lg px-3 h-10 dark:bg-gray-900 dark:border-gray-700" required>
-                    <p class="text-[11px] text-gray-500 mt-1">Usia: <b id="age-label">{{ $ageInDays }}</b> hari</p>
+                    <p class="text-[11px] text-gray-500 mt-1">
+                        Usia saat tes: <b id="age-label">{{ $ageInDays }}</b> hari
+                    </p>
                 </div>
 
-                {{-- Toggle auto summary --}}
+                {{-- Auto Summary Toggle --}}
                 <div class="md:col-span-1 flex items-end">
-                    <label class="inline-flex items-center gap-2 text-xs">
-                        <input type="checkbox" id="auto-summary-toggle" checked>
-                        <span>Auto ringkas catatan parameter ke “Catatan utama”</span>
+                    <label class="inline-flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                        <input type="checkbox" id="auto-summary-toggle" checked
+                            class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                        <span>Auto ringkas (hanya jika catatan diisi)</span>
                     </label>
                 </div>
 
                 {{-- Catatan Utama --}}
                 <div class="md:col-span-2">
-                    <label class="block text-sm mb-1">Catatan utama (otomatis dari catatan per-parameter) </label>
+                    <label class="block text-sm mb-1 text-gray-700 dark:text-gray-300">Catatan Utama</label>
                     <textarea name="notes" id="main-notes" rows="3"
-                        class="w-full border rounded-lg px-3 py-2 dark:bg-gray-900 dark:border-gray-700">{{ old('notes') }}</textarea>
+                        class="w-full border rounded-lg px-3 py-2 dark:bg-gray-900 dark:border-gray-700 auto-expand">{{ $notesValue }}</textarea>
                 </div>
-
             </div>
         </div>
 
-        {{-- LEGENDA --}}
-        <div class="p-4 bg-white dark:bg-gray-900 rounded-md shadow text-[11px] md:text-xs">
-            <div class="space-y-2">
-                <div class="flex flex-wrap gap-2 md:gap-3">
-                    <span class="font-medium">Hasil Tes:</span>
-                    <span class="px-2 py-0.5 rounded bg-green-100 text-green-700">LULUS (P)</span>
-                    <span class="px-2 py-0.5 rounded bg-red-100 text-red-700">GAGAL (F)</span>
-                    <span class="px-2 py-0.5 rounded bg-yellow-100 text-yellow-700">ULANG (R)</span>
-                    <span class="px-2 py-0.5 rounded bg-gray-200 text-gray-700">BELUM (OP)</span>
-                    <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-700">TIDAK WAJIB (NR)</span>
+        {{-- === KARTU 2: LEGENDA === --}}
+        <div class="p-5 bg-white dark:bg-gray-900 rounded-md shadow text-xs">
+            <h3
+                class="font-bold text-gray-800 dark:text-gray-100 mb-3 uppercase tracking-wide border-b pb-2 dark:border-gray-700">
+                Panduan & Legenda</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {{-- Kolom Kiri: Hasil Tes --}}
+                <div class="space-y-3">
+                    <div class="font-semibold text-gray-600 dark:text-gray-400 mb-1">Hasil Penilaian (Result):</div>
+                    <ul class="space-y-2">
+                        <li class="flex items-start gap-2">
+                            <span
+                                class="px-2 py-0.5 rounded bg-green-100 text-green-700 border border-green-200 font-bold min-w-[30px] text-center">P</span>
+                            <span class="text-gray-600 dark:text-gray-300"><b>Lulus (Pass)</b>: Anak mampu melakukan
+                                item tes.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span
+                                class="px-2 py-0.5 rounded bg-red-100 text-red-700 border border-red-200 font-bold min-w-[30px] text-center">F</span>
+                            <span class="text-gray-600 dark:text-gray-300"><b>Gagal (Fail)</b>: Anak mencoba namun belum
+                                berhasil.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span
+                                class="px-2 py-0.5 rounded bg-yellow-100 text-yellow-700 border border-yellow-200 font-bold min-w-[30px] text-center">R</span>
+                            <span class="text-gray-600 dark:text-gray-300"><b>Menolak (Refusal)</b>: Anak tidak mau
+                                mencoba (uji ulang nanti).</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span
+                                class="px-2 py-0.5 rounded bg-gray-200 text-gray-700 border border-gray-300 font-bold min-w-[30px] text-center">OP</span>
+                            <span class="text-gray-600 dark:text-gray-300"><b>Belum Ada Kesempatan</b>: Tidak ada
+                                alat/situasi tidak memungkinkan.</span>
+                        </li>
+                    </ul>
                 </div>
-                <div class="flex flex-wrap gap-2 md:gap-3">
-                    <span class="font-medium">Status Usia:</span>
-                    <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-700">Di Garis Usia</span>
-                    <span class="px-2 py-0.5 rounded bg-yellow-100 text-yellow-700">Rentang Usia</span>
-                    <span class="px-2 py-0.5 rounded bg-red-100 text-red-700">Lewat Usia</span>
-                    <span class="px-2 py-0.5 rounded bg-gray-200 text-gray-700">Belum Waktunya</span>
+
+                {{-- Kolom Kanan: Status Usia --}}
+                <div class="space-y-3">
+                    <div class="font-semibold text-gray-600 dark:text-gray-400 mb-1">Indikator Posisi Usia:</div>
+                    <ul class="space-y-2">
+                        <li class="flex items-start gap-2">
+                            <span
+                                class="px-2 py-0.5 rounded bg-blue-600 text-white font-bold w-24 text-center text-[10px]">Di
+                                Garis Usia</span>
+                            <span class="text-gray-600 dark:text-gray-300">Usia anak tepat sama dengan batas awal
+                                (25%).</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span
+                                class="px-2 py-0.5 rounded bg-blue-100 text-blue-700 border border-blue-200 w-24 text-center text-[10px]">Rentang
+                                Usia</span>
+                            <span class="text-gray-600 dark:text-gray-300">Usia anak di antara 25% - 75%. Fase normal
+                                belajar.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span
+                                class="px-2 py-0.5 rounded bg-orange-100 text-orange-800 border border-orange-300 font-bold w-24 text-center text-[10px]">Zona
+                                Kritis</span>
+                            <span class="text-gray-600 dark:text-gray-300">Usia 75% - 100%. <span
+                                    class="text-red-600 font-bold">Waspada jika Gagal (F).</span></span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span
+                                class="px-2 py-0.5 rounded bg-red-100 text-red-700 border border-red-200 w-24 text-center text-[10px]">Lewat
+                                Usia</span>
+                            <span class="text-gray-600 dark:text-gray-300">Usia > 100%. Sudah seharusnya bisa
+                                (Keterlambatan).</span>
+                        </li>
+                    </ul>
                 </div>
-                <ul class="list-disc pl-5 text-gray-600">
-                    <li><b>NR (Not Required / Tidak Wajib Diujikan)</b> untuk item yang tidak perlu diujikan pada sesi
-                        ini.</li>
-                    <li>Bila <b>Lewat Usia</b> namun hasil <b>LULUS</b>, tetap dianggap sesuai (normal) dan akan
-                        ditandai hijau.</li>
-                </ul>
             </div>
         </div>
 
-        {{-- Pencarian --}}
+        {{-- === KARTU 3: FILTER === --}}
         <div class="flex items-center justify-between">
             <div class="flex gap-2">
                 <input id="filter-input" type="text" placeholder="Cari parameter..."
-                    class="border rounded-lg px-3 h-9 dark:bg-gray-900 dark:border-gray-700">
+                    class="border rounded-lg px-3 h-9 dark:bg-gray-900 dark:border-gray-700 w-64 text-sm">
             </div>
-            <div class="text-xs text-gray-500">
+            <div class="text-xs text-gray-500 hidden md:block">
                 {{ $studentIsNormal ? 'Mode: Filter by usia (Normal)' : 'Mode: Tampilkan semua (KH)' }}
             </div>
         </div>
 
-        {{-- Parameter Per Kategori --}}
+        {{-- === KARTU 4: TABEL ITEM (LOOP) === --}}
         @php $rowIndex = 0; @endphp
         <div class="space-y-6" id="param-container">
             @foreach ($filtered_categories as $categoryName => $params)
                 @php $slug = \Illuminate\Support\Str::slug($categoryName, '-'); @endphp
-                <div class="border dark:border-gray-700 rounded-md">
-                    <div class="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-800 rounded-t-md">
-                        <div class="font-medium">{{ $categoryName }}</div>
-                        <label class="text-xs flex items-center gap-2 cursor-pointer select-none">
-                            <input type="checkbox" class="toggle-all-in-cat" data-target="cat-{{ $slug }}">
+
+                <div class="border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 shadow-sm overflow-hidden">
+                    {{-- Header Kategori --}}
+                    <div
+                        class="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-800 rounded-t-md border-b border-gray-200 dark:border-gray-600">
+                        <div class="font-medium text-gray-700 dark:text-gray-200 text-sm uppercase">{{ $categoryName }}
+                        </div>
+                        <label
+                            class="text-xs flex items-center gap-2 cursor-pointer select-none text-blue-600 hover:text-blue-800">
+                            <input type="checkbox" class="toggle-all-in-cat rounded border-gray-300"
+                                data-target="cat-{{ $slug }}">
                             <span>Pilih semua</span>
                         </label>
                     </div>
 
                     <div class="overflow-x-auto bg-white">
-                        <table class="min-w-full table-auto text-sm">
-                            <thead class=" dark:bg-gray-800/80 text-gray-600 dark:text-gray-400">
+                        <table class="min-w-full table-fixed text-sm divide-y divide-gray-100 dark:divide-gray-700">
+                            <thead
+                                class="bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 uppercase text-[10px] tracking-wider font-semibold">
                                 <tr>
-                                    <th class="py-2 px-3 text-left w-16">Nilai</th>
-                                    <th class="py-2 px-3 text-left w-56">Nama Unsur</th>
-                                    <th class="py-2 px-3 text-left hidden md:table-cell w-[28rem]">Deskripsi</th>
-                                    <th class="py-2 px-3 text-center w-12">P</th>
-                                    <th class="py-2 px-3 text-center w-12">F</th>
-                                    <th class="py-2 px-3 text-center w-12">R</th>
-                                    <th class="py-2 px-3 text-center w-12">OP</th>
-                                    <th class="py-2 px-3 text-center w-12">NR</th>
-                                    <th class="py-2 px-3 text-left w-64">Catatan</th>
-                                    <th class="py-2 px-3 text-left w-44">Tanda</th>
+                                    <th class="py-3 px-3 text-center w-10">Nilai</th>
+                                    <th class="py-3 px-3 text-left w-56">Nama Unsur</th>
+                                    <th class="py-3 px-3 text-left hidden md:table-cell w-[28rem]">Deskripsi</th>
+                                    {{-- Opsi --}}
+                                    <th class="py-3 px-1 text-center w-12 text-green-600">P</th>
+                                    <th class="py-3 px-1 text-center w-12 text-red-600">F</th>
+                                    <th class="py-3 px-1 text-center w-12 text-yellow-600">R</th>
+                                    <th class="py-3 px-1 text-center w-12 text-gray-500">OP</th>
+                                    <th class="py-3 px-3 text-left w-64">Catatan</th>
+                                    <th class="py-3 px-3 text-left w-44">Tanda</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse ($params as $p)
                                     @php
-                                        $prev = $previousMap[$p->id] ?? null;
-                                        $checked = (bool) $prev;
-                                        $code = $prev['result_code'] ?? null;
-                                        $note = $prev['note'] ?? '';
+                                        // Cari data item dari database (jika ada)
+                                        $item = $existingItems[$p->id] ?? null;
 
-                                        $bucket = bucketOf($ageInDays, $p->percent_25, $p->percent_100);
-                                        $bucketBadge = match ($bucket) {
-                                            'OVERDUE' => 'bg-red-100 text-red-700',
-                                            'AT_LINE' => 'bg-blue-100 text-blue-700',
-                                            'IN_WINDOW' => 'bg-yellow-100 text-yellow-700',
-                                            default => 'bg-gray-200 text-gray-700',
-                                        };
-                                        if ($bucket === 'OVERDUE' && $code === 'P') {
-                                            $bucketBadge = 'bg-green-100 text-green-700';
+                                        $checked = (bool) $item;
+                                        $code = $item['result_code'] ?? null;
+                                        $note = $item['note'] ?? '';
+
+                                        // Bucket
+                                        $bucketKey = bucketOf(
+                                            $ageInDays,
+                                            $p->percent_25,
+                                            $p->percent_75,
+                                            $p->percent_100,
+                                        );
+                                        $bLabel = $bucketConfig[$bucketKey]['label'];
+                                        $bClass = $bucketConfig[$bucketKey]['class'];
+
+                                        if ($bucketKey === 'OVERDUE' && $code === 'P') {
+                                            $bClass = 'bg-green-100 text-green-700 border-green-200';
+                                            $bLabel = 'Lewat Usia (Lulus)';
                                         }
-                                        $bucketTextId =
-                                            $bucket === 'OVERDUE' && $code === 'P'
-                                                ? 'Lewat Usia (Lulus)'
-                                                : $bucketText[$bucket] ?? $bucket;
 
-                                        $resultLabel = match ($code) {
-                                            'P' => 'LULUS',
-                                            'F' => 'GAGAL',
-                                            'R' => 'ULANG',
-                                            'OP' => 'BELUM',
-                                            'NR' => 'TIDAK WAJIB',
-                                            default => '—',
-                                        };
-                                        $resultBadge = match ($resultLabel) {
-                                            'LULUS' => 'bg-green-100 text-green-700',
-                                            'GAGAL' => 'bg-red-100 text-red-700',
-                                            'ULANG' => 'bg-yellow-100 text-yellow-700',
-                                            'TIDAK WAJIB' => 'bg-purple-100 text-purple-700',
-                                            'BELUM' => 'bg-gray-200 text-gray-700',
-                                            default => 'bg-gray-200 text-gray-700',
-                                        };
+                                        // Badge Hasil
+                                        $resText = '—';
+                                        $resClass = 'bg-gray-100 text-gray-400';
+                                        if ($code) {
+                                            $resText = match ($code) {
+                                                'P' => 'LULUS',
+                                                'F' => 'GAGAL',
+                                                'R' => 'ULANG',
+                                                'OP' => 'BELUM',
+                                                default => '-',
+                                            };
+                                            $resClass = match ($code) {
+                                                'P' => 'bg-green-100 text-green-700',
+                                                'F' => 'bg-red-100 text-red-700',
+                                                'R' => 'bg-yellow-100 text-yellow-700',
+                                                'OP' => 'bg-gray-200 text-gray-700',
+                                                default => 'bg-gray-100 text-gray-400',
+                                            };
+                                        }
+
+                                        // Style Baris (Active vs Disabled)
+                                        $rowClass = $checked ? 'row-active' : 'row-disabled';
                                     @endphp
 
-                                    <tr class="border-t border-gray-200 dark:border-gray-700 param-row"
+                                    <tr class="border-t border-gray-200 dark:border-gray-700 param-row {{ $rowClass }}"
                                         data-cat="cat-{{ $slug }}"
                                         data-text="{{ \Illuminate\Support\Str::lower($p->test_element_name . ' ' . ($p->test_element_description ?? '')) }}"
                                         data-param-id="{{ $p->id }}">
-                                        <td class="py-2 px-3 align-top">
-                                            <input type="checkbox" class="chk-include" data-row="{{ $rowIndex }}"
-                                                @checked($checked)>
+
+                                        {{-- Checkbox --}}
+                                        <td class="py-2 px-3 align-top text-center">
+                                            <input type="checkbox"
+                                                class="chk-include rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer w-4 h-4"
+                                                data-row="{{ $rowIndex }}" @checked($checked)>
                                         </td>
 
+                                        {{-- Nama & Rentang --}}
                                         <td class="py-2 px-3 align-top font-medium">
                                             <div class="space-y-1">
-                                                <div>{{ $p->test_element_name }}</div>
+                                                <div class="text-gray-900 dark:text-gray-100">
+                                                    {{ $p->test_element_name }}</div>
                                                 @if ($p->test_element_description)
-                                                    <div class="md:hidden text-[11px] text-gray-500">
-                                                        {{ \Illuminate\Support\Str::limit($p->test_element_description, 80) }}
+                                                    <div
+                                                        class="md:hidden text-[10px] italic border-l-2 pl-2 border-gray-300 text-gray-500">
+                                                        {{ \Illuminate\Support\Str::limit($p->test_element_description, 60) }}
                                                     </div>
                                                 @endif
-                                                <div class="text-[10px] text-gray-500">
-                                                    25/50/75/100:
-                                                    {{ $p->percent_25 ?? '—' }}/{{ $p->percent_50 ?? '—' }}/{{ $p->percent_75 ?? '—' }}/{{ $p->percent_100 ?? '—' }}
+                                                <div class="text-[10px] text-gray-500 font-mono">
+                                                    {{ $p->percent_25 ?? '-' }}/<b>{{ $p->percent_75 ?? '-' }}</b>/{{ $p->percent_100 ?? '-' }}
                                                 </div>
                                             </div>
                                         </td>
 
+                                        {{-- Deskripsi Desktop --}}
                                         <td
-                                            class="py-2 px-3 align-top text-xs text-gray-600 dark:text-gray-300 hidden md:table-cell">
+                                            class="py-2 px-3 align-top text-xs text-gray-500 hidden md:table-cell leading-relaxed">
                                             {{ $p->test_element_description ?? '-' }}
                                         </td>
 
-                                        {{-- hidden id param --}}
+                                        {{-- Hidden ID --}}
                                         <input type="hidden" name="items[{{ $rowIndex }}][parameter_id]"
                                             value="{{ $p->id }}" {{ $checked ? '' : 'disabled' }}>
 
-                                        {{-- Radios P/F/R/OP/NR --}}
-                                        @foreach (['P', 'F', 'R', 'OP', 'NR'] as $opt)
-                                            <td class="py-2 px-3 text-center">
-                                                <input type="radio" name="items[{{ $rowIndex }}][result_code]"
-                                                    value="{{ $opt }}" {{ $checked ? '' : 'disabled' }}
-                                                    @checked($code === $opt)>
+                                        {{-- Radios (Tanpa NR) --}}
+                                        @foreach (['P', 'F', 'R', 'OP'] as $opt)
+                                            <td class="py-2 px-1 text-center align-top">
+                                                <label
+                                                    class="block w-full h-full cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded p-1 transition">
+                                                    <input type="radio"
+                                                        name="items[{{ $rowIndex }}][result_code]"
+                                                        value="{{ $opt }}" {{ $checked ? '' : 'disabled' }}
+                                                        @checked($code === $opt)
+                                                        class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 cursor-pointer">
+                                                </label>
                                             </td>
                                         @endforeach
 
@@ -268,23 +398,28 @@
                                         <td class="py-2 px-3">
                                             <input type="text" name="items[{{ $rowIndex }}][note]"
                                                 value="{{ $note }}" {{ $checked ? '' : 'disabled' }}
-                                                class="w-full border rounded px-2 py-1 text-sm dark:bg-gray-900 dark:border-gray-700 note-input">
+                                                class="w-full border rounded px-2 py-1.5 text-sm dark:bg-gray-900 dark:border-gray-700 note-input focus:ring-blue-500"
+                                                placeholder="Ket...">
                                         </td>
 
-                                        {{-- Badges: usia + hasil --}}
-                                        <td class="py-2 px-3 text-[11px] md:text-xs">
-                                            <div class="flex flex-col gap-1 items-start">
+                                        {{-- Badges --}}
+                                        <td class="py-2 px-3 text-[10px]">
+                                            <div class="flex flex-col gap-1.5 items-start">
                                                 <span
-                                                    class="px-2 py-0.5 rounded bucket-badge {{ $bucketBadge }}">{{ $bucketTextId }}</span>
+                                                    class="px-2 py-0.5 rounded uppercase tracking-wide border {{ $bClass }} bucket-badge whitespace-normal text-center leading-tight">
+                                                    {{ $bLabel }}
+                                                </span>
                                                 <span
-                                                    class="px-2 py-0.5 rounded result-badge {{ $resultBadge }}">{{ $resultLabel }}</span>
+                                                    class="result-badge px-2 py-0.5 rounded font-bold border shadow-sm {{ $resClass }}">
+                                                    {{ $resText }}
+                                                </span>
                                             </div>
                                         </td>
                                     </tr>
                                     @php $rowIndex++; @endphp
                                 @empty
                                     <tr>
-                                        <td colspan="10" class="py-4 px-3 text-center text-gray-500">Tidak ada item
+                                        <td colspan="10" class="py-8 text-center text-gray-500">Tidak ada item
                                             relevan untuk usia ini.</td>
                                     </tr>
                                 @endforelse
@@ -296,50 +431,77 @@
         </div>
 
         {{-- Actions --}}
-        <div class="flex justify-end gap-2">
-            <a href="{{ route('mmdst-assessments.show', $mmdst_assessment) }}"
-                class="bg-gray-500 text-white border rounded-lg px-4 h-10 flex items-center">Batal</a>
+        <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <a href="{{ route('mmdst.index') }}"
+                class="bg-white text-gray-700 border border-gray-300 rounded-lg px-5 h-10 flex items-center hover:bg-gray-50 transition shadow-sm text-sm font-medium">Batal</a>
             <button type="button" onclick="confirmSubmit()"
-                class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 h-10">Simpan Perubahan</button>
+                class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-6 h-10 transition shadow-md text-sm font-medium flex items-center gap-2">
+                Simpan Perubahan
+            </button>
         </div>
     </form>
 
+    {{-- JavaScript Logic --}}
     <script>
-        // ========= Helpers =========
-        const csrf = () => document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         const $ = (sel, ctx = document) => ctx.querySelector(sel);
         const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
         const routeFilterParams = @json(route('mmdst.filter-params'));
-        const previousMapJSON = @json($previousMap->toArray());
+        // PENTING: Initial Map dari data existing (untuk restore state)
+        const initialPreviousMap = @json($existingItems->toArray());
+        const studentIdInput = $('#student_id');
+        const assessmentDate = $('#assessment_date');
+        const ageLabel = $('#age-label');
+        const paramContainer = $('#param-container');
 
-        // ========= Per-row enabler =========
-        function wireRowToggle(row) {
-            const chk = row.querySelector('.chk-include');
-            if (!chk) return;
-            const rowIdx = chk.dataset.row;
-
-            const toggle = () => {
-                row.querySelectorAll(
-                    `input[name="items[${rowIdx}][parameter_id]"], input[name="items[${rowIdx}][result_code]"], input[name="items[${rowIdx}][note]"]`
-                ).forEach(el => el.disabled = !chk.checked);
-                updateResultBadge(row);
+        // 1. Logika Bucket Usia JS (Wajib Sama dengan PHP)
+        function getBucketInfoJS(age, p25, p75, p100) {
+            age = parseInt(age);
+            p25 = parseInt(p25) || 0;
+            p75 = parseInt(p75) || 0;
+            p100 = parseInt(p100) || 99999;
+            if (age < p25) return {
+                label: 'Belum Waktunya',
+                cls: 'bg-gray-200 text-gray-700'
             };
-
-            toggle();
-            chk.addEventListener('change', () => {
-                toggle();
-                buildMainNotes();
-            });
+            if (age > p100) return {
+                label: 'Lewat Usia',
+                cls: 'bg-red-100 text-red-700'
+            };
+            if (age >= p75 && age <= p100) return {
+                label: 'Zona Kritis',
+                cls: 'bg-orange-100 text-orange-800 font-bold border border-orange-200'
+            };
+            if (age === p25) return {
+                label: 'Di Garis Usia',
+                cls: 'bg-blue-600 text-white font-bold'
+            };
+            return {
+                label: 'Rentang Usia',
+                cls: 'bg-blue-100 text-blue-700'
+            };
         }
 
+        // 2. Auto Expand Textarea
+        const mainNotes = $('#main-notes');
+
+        function autoResize(el) {
+            el.style.height = 'auto';
+            el.style.height = el.scrollHeight + 'px';
+        }
+        if (mainNotes) {
+            mainNotes.addEventListener('input', () => autoResize(mainNotes));
+            window.addEventListener('load', () => autoResize(mainNotes));
+        }
+
+        // 3. Row Interaction
         function updateResultBadge(row) {
             const rb = row.querySelector('.result-badge');
             if (!rb) return;
             const rowIdx = row.querySelector('.chk-include')?.dataset.row;
-            const selected = row.querySelector(`input[name="items[${rowIdx}][result_code]"]:checked`)?.value || null;
+            const selected = row.querySelector(`input[name="items[${rowIdx}][result_code]"]:checked`)?.value;
 
-            let label = 'BELUM',
-                cls = 'bg-gray-200 text-gray-700';
+            let label = '—',
+                cls = 'bg-gray-100 text-gray-400 border-gray-200';
             if (selected === 'P') {
                 label = 'LULUS';
                 cls = 'bg-green-100 text-green-700';
@@ -356,365 +518,52 @@
                 label = 'BELUM';
                 cls = 'bg-gray-200 text-gray-700';
             }
-            if (selected === 'NR') {
-                label = 'TIDAK WAJIB';
-                cls = 'bg-purple-100 text-purple-700';
-            }
 
             rb.textContent = label;
-            rb.className = 'px-2 py-0.5 rounded result-badge ' + cls;
+            rb.className = `result-badge px-2 py-0.5 rounded font-bold border shadow-sm ${cls}`;
         }
 
-        $$('.param-row').forEach(row => {
-            wireRowToggle(row);
-            wireNoteAndRadio(row);
-        });
+        function wireRowToggle(row) {
+            if (row.dataset.wired) return;
+            row.dataset.wired = "true";
 
-        // Toggle semua di kategori
-        $$('.toggle-all-in-cat').forEach(tg => {
-            tg.addEventListener('change', () => {
-                const cat = tg.dataset.target;
-                $$(`tr[data-cat="${cat}"] .chk-include`).forEach(chk => {
-                    chk.checked = tg.checked;
-                    chk.dispatchEvent(new Event('change'));
+            const chk = row.querySelector('.chk-include');
+            const rowIdx = chk.dataset.row;
+
+            const toggle = () => {
+                const inputs = row.querySelectorAll(`input[name^="items[${rowIdx}]"]`);
+                inputs.forEach(el => {
+                    if (el !== chk) el.disabled = !chk.checked;
                 });
+
+                // Style Change: Solid colors
+                if (!chk.checked) {
+                    row.classList.remove('row-active', 'bg-white', 'dark:bg-gray-800');
+                    row.classList.add('row-disabled');
+                } else {
+                    row.classList.remove('row-disabled');
+                    row.classList.add('row-active', 'bg-white', 'dark:bg-gray-800');
+                }
+                updateResultBadge(row);
+            };
+
+            toggle();
+            chk.addEventListener('change', () => {
+                toggle();
+                buildMainNotes();
             });
-        });
-
-        // Pencarian
-        const filterInput = $('#filter-input');
-        if (filterInput) {
-            filterInput.addEventListener('input', () => {
-                const q = filterInput.value.toLowerCase();
-                $$('.param-row').forEach(row => {
-                    const txt = row.getAttribute('data-text') || '';
-                    row.style.display = txt.includes(q) ? '' : 'none';
-                });
-            });
-        }
-
-        // ========= Auto Summary -> Catatan Utama =========
-        const autoToggle = $('#auto-summary-toggle');
-        const mainNotes = $('#main-notes');
-
-        function buildMainNotes() {
-            if (!autoToggle.checked) return;
-            const blocksByCategory = {};
-            $$('.param-row').forEach(row => {
-                const rowIdx = row.querySelector('.chk-include')?.dataset.row;
-                const enabled = row.querySelector(`input[name="items[${rowIdx}][parameter_id]"]`)?.disabled ===
-                    false;
-                if (!enabled) return;
-
-                const noteEl = row.querySelector(`input[name="items[${rowIdx}][note]"]`);
-                const note = (noteEl?.value || '').trim();
-                if (!note) return;
-
-                const catWrap = row.closest('.border.rounded-md');
-                const catName = catWrap?.querySelector('.font-medium')?.textContent?.trim() || 'Kategori';
-                const paramName = row.querySelector('td:nth-child(2) div > div:first-child')?.textContent?.trim() ||
-                    'Unsur';
-                const code = row.querySelector(`input[name="items[${rowIdx}][result_code]"]:checked`)?.value || '-';
-
-                if (!blocksByCategory[catName]) blocksByCategory[catName] = [];
-                blocksByCategory[catName].push(`- ${paramName} [${code}]: ${note}`);
-            });
-
-            const parts = [];
-            Object.keys(blocksByCategory).forEach(cat => {
-                parts.push(`${cat}:\n${blocksByCategory[cat].join('\n')}`);
-            });
-            mainNotes.value = parts.join('\n\n');
-        }
-
-        function wireNoteInput(row) {
-            const rowIdx = row.querySelector('.chk-include')?.dataset.row;
-            const noteEl = row.querySelector(`input[name="items[${rowIdx}][note]"]`);
-            if (noteEl) noteEl.addEventListener('input', buildMainNotes);
-            $$(`input[name="items[${rowIdx}][result_code]"]`, row).forEach(r => {
-                r.addEventListener('change', buildMainNotes);
-            });
-        }
-        $$('.param-row').forEach(wireNoteInput);
-
-        autoToggle.addEventListener('change', () => {
-            if (autoToggle.checked) buildMainNotes();
-        });
-
-        function wireNoteAndRadio(row) {
-            const rowIdx = row.querySelector('.chk-include')?.dataset.row;
-            const noteEl = row.querySelector(`input[name="items[${rowIdx}][note]"]`);
-            if (noteEl) noteEl.addEventListener('input', buildMainNotes);
-            $$(`input[name="items[${rowIdx}][result_code]"]`, row).forEach(r => {
+            row.querySelectorAll('input[type="radio"]').forEach(r => {
                 r.addEventListener('change', () => {
                     updateResultBadge(row);
                     buildMainNotes();
                 });
             });
+            row.querySelector('.note-input')?.addEventListener('input', buildMainNotes);
         }
 
-        // ========= Dynamic reload saat tanggal berubah =========
-        const studentIdInput = $('#student_id');
-        const assessmentDateInput = $('#assessment_date');
-        const ageLabel = $('#age-label');
-        const paramContainer = $('#param-container');
-        const studentNormalBadge = $('#student-normal-badge');
+        $$('.param-row').forEach(wireRowToggle);
 
-        assessmentDateInput.addEventListener('change', reloadParamsIfNeeded);
-
-        async function reloadParamsIfNeeded() {
-            const studentId = studentIdInput.value;
-            if (!studentId) return;
-
-            const currentState = captureCurrentState();
-
-            try {
-                const url = new URL(routeFilterParams, window.location.origin);
-                url.searchParams.set('student_id', studentId);
-                url.searchParams.set('assessment_date', assessmentDateInput.value);
-
-                const res = await fetch(url.toString(), {
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    cache: 'no-store'
-                });
-                const json = await res.json();
-                if (!res.ok || json.ok === false) throw new Error(json.message || 'Gagal memuat parameter.');
-
-                ageLabel.textContent = json.age_in_days ?? '-';
-
-                renderCategories(json.data || {}, currentState);
-
-                filterInput?.dispatchEvent(new Event('input'));
-                buildMainNotes();
-            } catch (e) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal',
-                    text: e.message || e.toString()
-                });
-            }
-        }
-
-        // Simpan kondisi saat ini
-        function captureCurrentState() {
-            const state = {};
-            $$('.param-row').forEach(row => {
-                const pid = row.getAttribute('data-param-id');
-                const chk = row.querySelector('.chk-include');
-                if (!pid || !chk) return;
-
-                const rowIdx = chk.dataset.row;
-                state[pid] = {
-                    enabled: chk.checked,
-                    code: row.querySelector(`input[name="items[${rowIdx}][result_code]"]:checked`)?.value ||
-                        null,
-                    note: row.querySelector(`input[name="items[${rowIdx}][note]"]`)?.value || ''
-                };
-            });
-            return state;
-        }
-
-        // Render ulang dari JSON server
-        function renderCategories(filteredCategories, previousState) {
-            paramContainer.innerHTML = '';
-            let rowIndex = 0;
-
-            const bucketClass = (bucket, passed) => {
-                if (bucket === 'OVERDUE' && passed) return 'bg-green-100 text-green-700';
-                switch (bucket) {
-                    case 'OVERDUE':
-                        return 'bg-red-100 text-red-700';
-                    case 'AT_LINE':
-                        return 'bg-blue-100 text-blue-700';
-                    case 'IN_WINDOW':
-                        return 'bg-yellow-100 text-yellow-700';
-                    default:
-                        return 'bg-gray-200 text-gray-700';
-                }
-            };
-            const bucketText = (b, passed) => {
-                if (b === 'OVERDUE' && passed) return 'Lewat Usia (Lulus)';
-                switch (b) {
-                    case 'OVERDUE':
-                        return 'Lewat Usia';
-                    case 'AT_LINE':
-                        return 'Di Garis Usia';
-                    case 'IN_WINDOW':
-                        return 'Rentang Usia';
-                    default:
-                        return 'Belum Waktunya';
-                }
-            };
-
-            const age = parseInt($('#age-label').textContent || '0', 10) || 0;
-
-            Object.keys(filteredCategories).forEach(catName => {
-                const slug = slugify(catName);
-                const items = filteredCategories[catName] || [];
-
-                const wrap = document.createElement('div');
-                wrap.className = 'border dark:border-gray-700 rounded-md';
-                wrap.innerHTML = `
-                    <div class="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-800 rounded-t-md">
-                        <div class="font-medium">${catName}</div>
-                        <label class="text-xs flex items-center gap-2 cursor-pointer select-none">
-                            <input type="checkbox" class="toggle-all-in-cat" data-target="cat-${slug}">
-                            <span>Pilih semua</span>
-                        </label>
-                    </div>
-                    <div class="overflow-x-auto bg-white">
-                        <table class="min-w-full table-fixed text-sm">
-                            <thead class="dark:bg-gray-800/80 text-gray-600 dark:text-gray-400">
-                                <tr>
-                                    <th class="py-2 px-3 text-left w-16">Nilai</th>
-                                    <th class="py-2 px-3 text-left w-56">Nama Unsur</th>
-                                    <th class="py-2 px-3 text-left hidden md:table-cell w-[28rem]">Deskripsi</th>
-                                    <th class="py-2 px-3 text-center w-12">P</th>
-                                    <th class="py-2 px-3 text-center w-12">F</th>
-                                    <th class="py-2 px-3 text-center w-12">R</th>
-                                    <th class="py-2 px-3 text-center w-12">OP</th>
-                                    <th class="py-2 px-3 text-center w-12">NR</th>
-                                    <th class="py-2 px-3 text-left w-64">Catatan</th>
-                                    <th class="py-2 px-3 text-left w-44">Tanda</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                `;
-                const tbody = wrap.querySelector('tbody');
-
-                items.forEach(p => {
-                    const pid = p.id;
-                    const prevS = previousState?.[pid] || {};
-                    const prevM = previousMapJSON[pid] || {};
-
-                    // Prioritas: state saat ini > prefill existing
-                    const enabled = prevS.enabled ?? (!!prevM.result_code) ?? false;
-                    const code = prevS.code ?? prevM.result_code ?? null;
-                    const note = prevS.note ?? prevM.note ?? '';
-
-                    const p25 = p.percent_25,
-                        p100 = p.percent_100;
-                    let bkt = 'NOT_YET';
-                    if (p25 == null || p100 == null) bkt = 'NOT_YET';
-                    else if (age < p25) bkt = 'NOT_YET';
-                    else if (age > p100) bkt = 'OVERDUE';
-                    else if (age === p25 || age === p100) bkt = 'AT_LINE';
-                    else bkt = 'IN_WINDOW';
-                    const passed = code === 'P';
-
-                    const tr = document.createElement('tr');
-                    tr.className = 'border-t border-gray-200 dark:border-gray-700 param-row';
-                    tr.setAttribute('data-cat', `cat-${slug}`);
-                    tr.setAttribute('data-text',
-                        `${(p.name || p.test_element_name || '')} ${(p.description || p.test_element_description || '')}`
-                        .toLowerCase());
-                    tr.setAttribute('data-param-id', pid);
-
-                    const name = p.name ?? p.test_element_name ?? '-';
-                    const desc = p.description ?? p.test_element_description ?? '-';
-
-                    tr.innerHTML = `
-                        <td class="py-2 px-3 align-top">
-                            <input type="checkbox" class="chk-include" data-row="${rowIndex}" ${enabled ? 'checked' : ''}>
-                        </td>
-                        <td class="py-2 px-3 align-top font-medium">
-                            <div class="space-y-1">
-                                <div>${escapeHtml(name)}</div>
-                                ${desc ? `<div class="md:hidden text-[11px] text-gray-500">${escapeHtml(desc).slice(0,80)}</div>` : ''}
-                                <div class="text-[10px] text-gray-500">
-                                    25/50/75/100:
-                                    ${(p.percent_25 ?? '—')}/${(p.percent_50 ?? '—')}/${(p.percent_75 ?? '—')}/${(p.percent_100 ?? '—')}
-                                </div>
-                            </div>
-                        </td>
-                        <td class="py-2 px-3 align-top text-xs text-gray-600 dark:text-gray-300 hidden md:table-cell">
-                            ${escapeHtml(desc)}
-                        </td>
-
-                        <input type="hidden" name="items[${rowIndex}][parameter_id]" value="${pid}" ${enabled ? '' : 'disabled'}>
-
-                        ${['P','F','R','OP','NR'].map(opt => `
-                                                                                                            <td class="py-2 px-3 text-center">
-                                                                                                                <input type="radio" name="items[${rowIndex}][result_code]" value="${opt}" ${enabled ? '' : 'disabled'} ${code===opt?'checked':''}>
-                                                                                                            </td>
-                                                                                                        `).join('')}
-
-                        <td class="py-2 px-3">
-                            <input type="text" name="items[${rowIndex}][note]" value="${escapeAttr(note)}" ${enabled ? '' : 'disabled'}
-                                   class="w-full border rounded px-2 py-1 text-sm dark:bg-gray-900 dark:border-gray-700 note-input">
-                        </td>
-
-                        <td class="py-2 px-3 text-[11px] md:text-xs">
-                            <div class="flex flex-col gap-1 items-start">
-                                <span class="px-2 py-0.5 rounded bucket-badge ${bucketClass(bkt, passed)}">${bucketText(bkt, passed)}</span>
-                                <span class="px-2 py-0.5 rounded result-badge ${resultClass(code)}">${resultText(code)}</span>
-                            </div>
-                        </td>
-                    `;
-
-                    tbody.appendChild(tr);
-                    wireRowToggle(tr);
-                    wireNoteAndRadio(tr);
-                    rowIndex++;
-                });
-
-                paramContainer.appendChild(wrap);
-
-                wrap.querySelector('.toggle-all-in-cat')?.addEventListener('change', (e) => {
-                    const cat = e.target.dataset.target;
-                    $$(`tr[data-cat="${cat}"] .chk-include`).forEach(chk => {
-                        chk.checked = e.target.checked;
-                        chk.dispatchEvent(new Event('change'));
-                    });
-                });
-            });
-        }
-
-        function resultText(code) {
-            switch (code) {
-                case 'P':
-                    return 'LULUS';
-                case 'F':
-                    return 'GAGAL';
-                case 'R':
-                    return 'ULANG';
-                case 'NR':
-                    return 'TIDAK WAJIB';
-                case 'OP':
-                    return 'BELUM';
-                default:
-                    return '—';
-            }
-        }
-
-        function resultClass(code) {
-            switch (code) {
-                case 'P':
-                    return 'bg-green-100 text-green-700';
-                case 'F':
-                    return 'bg-red-100 text-red-700';
-                case 'R':
-                    return 'bg-yellow-100 text-yellow-700';
-                case 'NR':
-                    return 'bg-purple-100 text-purple-700';
-                case 'OP':
-                    return 'bg-gray-200 text-gray-700';
-                default:
-                    return 'bg-gray-200 text-gray-700';
-            }
-        }
-
-        function slugify(s) {
-            return (s || '').toString().toLowerCase()
-                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-        }
-
+        // 4. Dynamic Reload (AJAX)
         function escapeHtml(s) {
             return (s ?? '').toString().replace(/[&<>"']/g, c => ({
                 '&': '&amp;',
@@ -729,52 +578,316 @@
             return escapeHtml(s).replace(/"/g, '&quot;');
         }
 
-        // ========= Submit =========
-        function confirmSubmit() {
-            const anyChecked = $$('.chk-include').some(c => c.checked);
+        function slugify(s) {
+            return (s || '').toString().toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        }
+
+        // Capture State agar input tidak hilang saat ganti tanggal
+        function captureCurrentState() {
+            const state = {};
+            $$('.param-row').forEach(row => {
+                const pid = row.dataset.paramId;
+                const chk = row.querySelector('.chk-include');
+                if (!pid || !chk) return;
+                const rowIdx = chk.dataset.row;
+                state[pid] = {
+                    enabled: chk.checked,
+                    code: row.querySelector(`input[name="items[${rowIdx}][result_code]"]:checked`)?.value ||
+                        null,
+                    note: row.querySelector(`input[name="items[${rowIdx}][note]"]`)?.value || '',
+                    userInteracted: true
+                };
+            });
+            return state;
+        }
+
+        assessmentDate.addEventListener('change', async function() {
+            const studentId = studentIdInput.value;
+            if (!studentId) return;
+
+            const currentState = captureCurrentState();
+            ageLabel.textContent = '...';
+
+            try {
+                const url = new URL(routeFilterParams, window.location.origin);
+                url.searchParams.set('student_id', studentId);
+                url.searchParams.set('assessment_date', assessmentDate.value);
+
+                const res = await fetch(url.toString(), {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                const json = await res.json();
+
+                if (!res.ok) throw new Error('Gagal memuat parameter terbaru.');
+
+                ageLabel.textContent = json.age_in_days;
+                renderCategories(json.data || {}, currentState, json.age_in_days);
+                $('#filter-input').dispatchEvent(new Event('input'));
+                buildMainNotes();
+
+            } catch (e) {
+                console.error(e);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Memuat',
+                    text: 'Terjadi kesalahan saat memuat parameter baru.'
+                });
+            }
+        });
+
+        // Render Ulang Tabel saat Tanggal Berubah
+        function renderCategories(filteredCategories, currentState, age) {
+            paramContainer.innerHTML = '';
+            let rowIndex = 0;
+
+            Object.keys(filteredCategories).forEach(catName => {
+                const slug = slugify(catName);
+                const items = filteredCategories[catName] || [];
+
+                const wrap = document.createElement('div');
+                wrap.className =
+                    'border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 shadow-sm overflow-hidden';
+                wrap.innerHTML = `
+                    <div class="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-800 rounded-t-md border-b border-gray-200 dark:border-gray-600">
+                        <div class="font-medium text-gray-700 dark:text-gray-200 text-sm uppercase">${catName}</div>
+                        <label class="text-xs flex items-center gap-2 cursor-pointer select-none text-blue-600 hover:text-blue-800">
+                            <input type="checkbox" class="toggle-all-in-cat rounded border-gray-300 text-blue-600 focus:ring-blue-500" data-target="cat-${slug}">
+                            <span>Pilih semua</span>
+                        </label>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full table-fixed text-sm">
+                            <thead class="bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 uppercase text-[10px] tracking-wider font-semibold">
+                                <tr>
+                                    <th class="py-2 px-3 text-center w-10">Nilai</th>
+                                    <th class="py-2 px-3 text-left w-56">Nama Unsur</th>
+                                    <th class="py-2 px-3 text-left hidden md:table-cell w-[28rem]">Deskripsi</th>
+                                    <th class="py-2 px-3 text-center w-12 text-green-600">P</th>
+                                    <th class="py-2 px-3 text-center w-12 text-red-600">F</th>
+                                    <th class="py-2 px-3 text-center w-12 text-yellow-600">R</th>
+                                    <th class="py-2 px-3 text-center w-12 text-gray-500">OP</th>
+                                    <th class="py-2 px-3 text-left w-64">Catatan</th>
+                                    <th class="py-2 px-3 text-left w-44">Tanda</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
+                        </table>
+                    </div>
+                `;
+                const tbody = wrap.querySelector('tbody');
+
+                items.forEach(p => {
+                    const pid = p.id;
+                    // Logic restore state: Current Input > Initial DB
+                    let savedState = currentState[pid] || {};
+                    let userHasInteracted = savedState.userInteracted === true;
+                    // Note: initialPreviousMap is an object keyed by ID
+                    let history = initialPreviousMap[pid] || {};
+                    let historyCode = history.result_code || null;
+                    let historyNote = history.note || '';
+
+                    let enabled, code, note;
+                    if (userHasInteracted) {
+                        enabled = savedState.enabled;
+                        code = savedState.code;
+                        note = savedState.note;
+                    } else {
+                        // Jika belum disentuh user sejak reload, pakai data DB
+                        enabled = !!historyCode;
+                        code = historyCode;
+                        note = historyNote;
+                    }
+
+                    const bucket = getBucketInfoJS(age, p.percent_25, p.percent_75, p.percent_100);
+                    let bLabel = bucket.label;
+                    let bClass = bucket.cls;
+
+                    if (bucket.label === 'Lewat Usia' && code === 'P') {
+                        bClass = 'bg-green-100 text-green-700 border-green-200';
+                        bLabel = 'Lewat Usia (Lulus)';
+                    }
+
+                    let resLabel = '—',
+                        resClass = 'bg-gray-100 text-gray-400 border-gray-200';
+                    if (code === 'P') {
+                        resLabel = 'LULUS';
+                        resClass = 'bg-green-100 text-green-700';
+                    }
+                    if (code === 'F') {
+                        resLabel = 'GAGAL';
+                        resClass = 'bg-red-100 text-red-700';
+                    }
+                    if (code === 'R') {
+                        resLabel = 'ULANG';
+                        resClass = 'bg-yellow-100 text-yellow-700';
+                    }
+                    if (code === 'OP') {
+                        resLabel = 'BELUM';
+                        resClass = 'bg-gray-200 text-gray-700';
+                    }
+
+                    const rowClass = enabled ? 'row-active bg-white dark:bg-gray-800' : 'row-disabled';
+                    const tr = document.createElement('tr');
+                    tr.className =
+                        `param-row border-t border-gray-200 dark:border-gray-700 transition-colors ${rowClass}`;
+                    tr.dataset.cat = `cat-${slug}`;
+                    tr.dataset.text = (p.name + ' ' + (p.description || '')).toLowerCase();
+                    tr.dataset.paramId = pid;
+
+                    const renderRadio = (val) => `
+                        <td class="py-2 px-3 text-center">
+                            <input type="radio" name="items[${rowIndex}][result_code]" value="${val}"
+                                ${enabled ? '' : 'disabled'} ${code === val ? 'checked' : ''}>
+                        </td>`;
+
+                    tr.innerHTML = `
+                        <td class="py-2 px-3 align-top text-center">
+                            <input type="checkbox" class="chk-include rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer w-4 h-4"
+                                data-row="${rowIndex}" ${enabled ? 'checked' : ''}>
+                        </td>
+                        <td class="py-2 px-3 align-top font-medium">
+                            <div class="space-y-1">
+                                <div>${escapeHtml(p.name)}</div>
+                                ${p.description ? `<div class="md:hidden text-[10px] text-gray-500">${escapeHtml(p.description).slice(0,60)}</div>` : ''}
+                                <div class="text-[10px] text-gray-500 font-mono">
+                                    ${p.percent_25??'-'}/<b>${p.percent_75??'-'}</b>/${p.percent_100??'-'}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-2 px-3 align-top text-xs text-gray-500 hidden md:table-cell">
+                            ${escapeHtml(p.description)}
+                        </td>
+                        <input type="hidden" name="items[${rowIndex}][parameter_id]" value="${pid}" ${enabled ? '' : 'disabled'}>
+                        ${renderRadio('P')} ${renderRadio('F')} ${renderRadio('R')} ${renderRadio('OP')}
+                        <td class="py-2 px-3">
+                            <input type="text" name="items[${rowIndex}][note]" value="${escapeAttr(note)}" ${enabled ? '' : 'disabled'}
+                                class="w-full border rounded px-2 py-1 text-sm dark:bg-gray-900 dark:border-gray-700 note-input">
+                        </td>
+                        <td class="py-2 px-3 text-[10px]">
+                            <div class="flex flex-col gap-1 items-start">
+                                <span class="px-2 py-0.5 rounded bucket-badge ${bClass} whitespace-normal text-center h-auto leading-tight">${bLabel}</span>
+                                <span class="result-badge px-2 py-0.5 rounded font-bold border shadow-sm ${resClass}">${resLabel}</span>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                    wireRowToggle(tr);
+                    rowIndex++;
+                });
+                paramContainer.appendChild(wrap);
+
+                wrap.querySelector('.toggle-all-in-cat').addEventListener('change', (e) => {
+                    $$(`tr[data-cat="cat-${slug}"] .chk-include`).forEach(c => {
+                        c.checked = e.target.checked;
+                        c.dispatchEvent(new Event('change'));
+                    });
+                });
+            });
+        }
+
+        // 5. Filter & Summary
+        $('#filter-input')?.addEventListener('input', function() {
+            const q = this.value.toLowerCase();
+            $$('.param-row').forEach(row => {
+                const txt = row.dataset.text || '';
+                row.style.display = txt.includes(q) ? '' : 'none';
+            });
+        });
+
+        $$('.toggle-all-in-cat').forEach(tg => {
+            tg.addEventListener('change', (e) => {
+                $$(`tr[data-cat="${e.target.dataset.target}"] .chk-include`).forEach(c => {
+                    c.checked = e.target.checked;
+                    c.dispatchEvent(new Event('change'));
+                });
+            });
+        });
+
+        const autoToggle = $('#auto-summary-toggle');
+
+        function buildMainNotes() {
+            if (!autoToggle.checked) return;
+            const blocks = {};
+            $$('.param-row').forEach(row => {
+                const chk = row.querySelector('.chk-include');
+                if (!chk.checked) return;
+
+                const rowIdx = chk.dataset.row;
+                const note = (row.querySelector('.note-input')?.value || '').trim();
+                const code = row.querySelector(`input[name="items[${rowIdx}][result_code]"]:checked`)?.value || '-';
+
+                // LOGIKA: HANYA JIKA NOTE DIISI
+                if (!note) return;
+
+                const catName = row.closest('.rounded-md').querySelector('.font-medium').innerText.trim();
+                const paramName = row.querySelector('td:nth-child(2) div').innerText.trim().split('\n')[0];
+
+                if (!blocks[catName]) blocks[catName] = [];
+                let line = `- ${paramName}`;
+                if (code !== '-') line += ` [${code}]`;
+                line += `: ${note}`;
+
+                blocks[catName].push(line);
+            });
+            const lines = [];
+            Object.keys(blocks).forEach(c => {
+                if (blocks[c].length) lines.push(`${c}:\n${blocks[c].join('\n')}`);
+            });
+            mainNotes.value = lines.join('\n\n');
+            autoResize(mainNotes);
+        }
+        autoToggle.addEventListener('change', () => {
+            if (autoToggle.checked) buildMainNotes();
+        });
+
+        // 6. Submit
+        window.confirmSubmit = function() {
+            const anyChecked = $$('.chk-include:checked').length > 0;
             if (!anyChecked) {
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Belum ada item',
-                    text: 'Silakan pilih minimal 1 item.'
+                    title: 'Perhatian',
+                    text: 'Pilih minimal 1 item.'
                 });
                 return;
             }
             const invalid = $$('.param-row').some(row => {
                 const chk = row.querySelector('.chk-include');
-                if (!chk?.checked) return false;
-                const rowIdx = chk.dataset.row;
-                return !row.querySelector(`input[name="items[${rowIdx}][result_code]"]:checked`);
+                return chk.checked && !row.querySelector('input[type="radio"]:checked');
             });
             if (invalid) {
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Nilai belum lengkap',
-                    text: 'Pilih P/F/R/OP/NR untuk item yang dicentang.'
+                    title: 'Belum Lengkap',
+                    text: 'Isi nilai (P/F/R/OP) untuk item yang dicentang.'
                 });
                 return;
             }
+
             Swal.fire({
                 title: 'Simpan Perubahan?',
-                text: 'Pastikan data sudah benar.',
+                text: 'Data penilaian akan diperbarui.',
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: 'Simpan',
-                cancelButtonText: 'Batal'
+                confirmButtonText: 'Ya, Simpan'
             }).then(res => {
                 if (res.isConfirmed) {
                     Swal.fire({
                         title: 'Menyimpan...',
-                        allowOutsideClick: false,
                         didOpen: () => Swal.showLoading()
                     });
                     document.getElementById('assessment-form').submit();
                 }
             });
-        }
-        window.confirmSubmit = confirmSubmit;
+        };
 
-        // Build ringkasan awal (dari existing)
-        document.addEventListener('DOMContentLoaded', buildMainNotes);
+        // Init
+        window.addEventListener('load', () => {
+            buildMainNotes();
+            autoResize(mainNotes);
+        });
     </script>
 </x-app-layout>

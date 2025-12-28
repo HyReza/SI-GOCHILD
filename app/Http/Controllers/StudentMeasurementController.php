@@ -135,10 +135,6 @@ class StudentMeasurementController extends Controller
     {
         $student = Auth::guard('student')->user();
 
-        if ($measurement->activityTransaction->student_id !== $student->id) {
-            abort(403, 'Akses ditolak.');
-        }
-
         return view('student.meansurement.meansurement-show.index', compact('measurement', 'student'));
     }
 }

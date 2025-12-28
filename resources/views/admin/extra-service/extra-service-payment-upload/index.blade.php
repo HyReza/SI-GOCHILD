@@ -220,7 +220,7 @@
                             </button>
 
                             {{-- Tombol Sekunder (Secondary) --}}
-                            <button type="button" onclick="window.location='{{ route('orders.index') }}'"
+                            <button type="button" onclick="window.location='{{ route('orders.select-student') }}'"
                                 class="mt-4 w-full py-3.5 px-6 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 font-semibold hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-200">
                                 Simpan & Upload Nanti
                             </button>

@@ -1,52 +1,63 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Laporan Perkembangan - {{ $report->activityTransaction->student->student_name }}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Laporan - {{ $report->student->student_name }}</title>
     <style>
-        /* CSS Lengkap untuk PDF */
+        /** SETTING HALAMAN & FONT */
         @page {
-            margin: 2cm;
-            size: A4;
+            margin: 1cm;
         }
 
         body {
             font-family: 'Helvetica', 'Arial', sans-serif;
-            font-size: 10pt;
-            line-height: 1.4;
-            color: #333;
+            font-size: 11pt;
+            line-height: 1.3;
+            color: #000;
+            padding: 1.5cm 1cm;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
+        /** BORDER HALAMAN */
+        .page-border {
+            position: fixed;
+            left: 0px;
+            top: 0px;
+            bottom: 0px;
+            right: 0px;
+            z-index: -1000;
+            border: 2px double #333;
+            padding: 5px;
         }
 
-        th,
-        td {
-            border: 1px solid #ccc;
-            padding: 6px 8px;
-            text-align: left;
-            vertical-align: top;
-            word-wrap: break-word;
+        .page-border-inner {
+            border: 1px solid #333;
+            height: 100%;
         }
 
-        thead th {
-            background-color: #f2f2f2;
-            font-size: 8pt;
-            font-weight: bold;
-            text-align: center;
-        }
-
+        /** UTILITIES */
         .text-center {
             text-align: center;
         }
 
-        .font-bold {
+        .text-right {
+            text-align: right;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+
+        .text-justify {
+            text-align: justify;
+        }
+
+        .bold {
             font-weight: bold;
+        }
+
+        .uppercase {
+            text-transform: uppercase;
         }
 
         .italic {
@@ -57,290 +68,544 @@
             page-break-after: always;
         }
 
-        .report-header {
-            text-align: center;
-            margin-bottom: 1.5rem;
+        .avoid-break {
+            page-break-inside: avoid;
         }
 
-        .report-header h3 {
-            margin: 0;
-            font-size: 16pt;
-            font-weight: bold;
-        }
-
-        .report-header p {
-            margin: 2px 0;
-            font-size: 10pt;
-        }
-
-        .identity-table {
-            border: none;
-            margin-bottom: 1.5rem;
-        }
-
-        .identity-table td {
-            border: none;
-            padding: 2px 0;
-            font-size: 10pt;
-        }
-
-        .identity-table .label {
-            width: 100px;
-            font-weight: bold;
-        }
-
-        .assessment-table .theme-row td {
-            background-color: #EBF4FF;
-            font-weight: bold;
-            font-size: 11pt;
-        }
-
-        .assessment-table .subtheme-row td {
-            background-color: #F7FAFC;
-            font-weight: bold;
-            padding-left: 20px;
-        }
-
-        .assessment-table .material-row td {
-            padding-left: 35px;
-        }
-
-        .summary-box {
-            background-color: #F7FAFC;
-            border: 1px solid #E2E8F0;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 1.5rem;
-        }
-
-        .summary-box h4 {
-            font-weight: bold;
-            font-size: 11pt;
-            margin-top: 0;
-            margin-bottom: 8px;
-            border-bottom: 1px solid #E2E8F0;
-            padding-bottom: 5px;
-        }
-
-        .signature-section {
-            margin-top: 3rem;
+        /** TABLES */
+        table {
             width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 5px;
+        }
+
+        td,
+        th {
+            vertical-align: top;
+            padding: 4px;
+        }
+
+        /* Table Bordered */
+        .table-bordered {
+            border: 1px solid #000;
+        }
+
+        .table-bordered th,
+        .table-bordered td {
+            border: 1px solid #000;
+            padding: 5px;
+        }
+
+        .table-bordered th {
+            background-color: #f2f2f2;
+            text-align: center;
+            font-weight: bold;
+            font-size: 10pt;
+        }
+
+        /** HEADER KOP SURAT */
+        .header-table {
+            border-bottom: 3px double #000;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .school-name {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .school-address {
+            font-size: 9pt;
+            font-style: italic;
+        }
+
+        /** COMPONENTS */
+        .box-title {
+            background-color: #e0e0e0;
+            border: 1px solid #000;
+            padding: 5px 10px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            margin-top: 15px;
+            font-size: 11pt;
+        }
+
+        .photo-box {
+            width: 3cm;
+            height: 4cm;
+            border: 1px solid #000;
+            object-fit: cover;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .check-mark {
+            font-family: 'DejaVu Sans', sans-serif;
+            text-align: center;
+            font-size: 12pt;
+            font-weight: bold;
+        }
+
+        .content-img {
+            width: 160px;
+            height: 110px;
+            object-fit: cover;
+            border: 1px solid #ccc;
+            padding: 2px;
+        }
+
+        /* SIGNATURES */
+        .signature-table td {
+            text-align: center;
+            vertical-align: bottom;
+            height: 90px;
+        }
+
+        .sig-img {
+            max-height: 70px;
+            max-width: 120px;
         }
     </style>
 </head>
 
 <body>
+
     @php
-        $themes = \App\Models\Theme::with('subTheme.material')->orderBy('id')->get();
-        $romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
-        $alphabet = range('a', 'z');
-        $scoresByThemeId = $report->details->whereNotNull('theme_id')->keyBy('theme_id');
-        $scoresBySubThemeId = $report->details
-            ->whereNotNull('sub_theme_id')
-            ->whereNull('material_id')
-            ->keyBy('sub_theme_id');
-        $scoresByMaterialId = $report->details->whereNotNull('material_id')->keyBy('material_id');
-        $notesByThemeId = $report->themeNotes->keyBy('theme_id');
-        $healthDetailsMap = $report->healthDetails->keyBy('item_name');
-        $healthItems = [
-            'Mata - Penglihatan',
-            'Telinga - Pendengaran',
-            'Gigi',
-            'Kulit',
-            'Kebersihan',
-            'Kerapian',
-            'Rambut',
-            'Kuku',
-        ];
-        $attendance = json_decode($report->attendance_summary, true) ?? ['sick' => 0, 'excused' => 0, 'absent' => 0];
+        // LOGIKA PERHITUNGAN TAHUN AJARAN YANG STABIL
+        $startDate = \Carbon\Carbon::parse($report->start_date);
+        $startYear = $startDate->year;
+        $endYear = $startYear + 1;
+        if ($startDate->month < 7) {
+            $startYear = $startYear - 1;
+            $endYear = $startYear + 1;
+        }
+        $academicYear = $startYear . ' / ' . $endYear;
+
+        // MENGGABUNGKAN ALAMAT SISWA DARI KOLOM TERPISAH
+        $student = $report->student;
+        $fullAddress = trim(
+            ($student->street ? $student->street . ', ' : '') .
+                ($student->village ? $student->village . ', ' : '') .
+                ($student->subdistrict ? 'Kec. ' . $student->subdistrict . ', ' : '') .
+                ($student->district ? 'Kab. ' . $student->district : ''),
+            ', ',
+        );
+        $fullAddress = $fullAddress ?: $student->address ?? '-'; // Fallback ke kolom address lama
     @endphp
 
-    {{-- ====================================================== --}}
-    {{--                     LEMBAR PERTAMA                       --}}
-    {{-- ====================================================== --}}
-    <div class="report-header">
-        <h3>LAPORAN PERKEMBANGAN ANAK</h3>
-        <p>AL JANNAH PRESCHOOL AND DAY CARE</p>
-        <p style="margin-top: 10px; font-weight: bold;">{{ $report->report_title }}</p>
+    <div class="page-border">
+        <div class="page-border-inner"></div>
     </div>
 
-    <table class="identity-table">
+    <div class="text-center" style="margin-top: 150px;">
+        <img src="{{ public_path('images/logo2.png') }}" style="width: 160px; height: auto;">
+        <br><br><br>
+        <div style="font-size: 20pt;" class="bold">LAPORAN</div>
+        <div style="font-size: 18pt;" class="bold">HASIL BELAJAR PESERTA DIDIK</div>
+        <div style="font-size: 16pt;">PENDIDIKAN ANAK USIA DINI</div>
+        <br>
+        <div class="italic" style="font-size: 12pt;">"Mewujudkan Generasi Sehat, Cerdas, dan Berakhlak Mulia"</div>
+        <br><br><br><br>
+        <div style="font-size: 12pt;">NAMA PESERTA DIDIK:</div>
+        <div style="border: 2px solid #000; padding: 15px; margin: 10px 50px; font-size: 18pt; background-color: #f9f9f9;"
+            class="bold uppercase">{{ $report->student->student_name }}</div>
+        <div style="margin-top: 15px;">NOMOR INDUK SISWA (NIS):</div>
+        <div style="font-size: 16pt;" class="bold">{{ $report->student->student_number }}</div>
+        <br><br><br><br><br>
+        <div style="font-size: 14pt;" class="bold">AL JANNAH PRESCHOOL AND DAY CARE</div>
+        <div style="font-size: 10pt;">Jl. Giok No.17-18 Perumahan Villa Pisma Asri, Desa Podo, Kec.
+            Kedungwuni<br>Kabupaten Pekalongan, Jawa Tengah</div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <div class="text-center bold" style="font-size: 16pt; margin-bottom: 30px; text-decoration: underline;">DATA DIRI
+        ANAK</div>
+    <table width="100%">
         <tr>
-            <td class="label">Nama Siswa</td>
-            <td>: {{ $report->activityTransaction->student->student_name }}</td>
-            <td class="label">No. Induk</td>
-            <td>: {{ $report->activityTransaction->student->student_number }}</td>
+            <td width="30%" align="center" style="padding-top: 20px;">
+                @if ($report->student->user_photo && file_exists(storage_path('app/public/' . $report->student->user_photo)))
+                    <img src="{{ storage_path('app/public/' . $report->student->user_photo) }}" class="photo-box">
+                @else
+                    <div class="photo-box" style="line-height: 4cm; font-size: 10pt; color: #aaa; text-align: center;">
+                        FOTO 3x4</div>
+                @endif
+            </td>
+            <td width="70%">
+                <table width="100%" style="font-size: 12pt;">
+                    <tr>
+                        <td width="5%">1.</td>
+                        <td width="35%">Nama Lengkap</td>
+                        <td width="5%">:</td>
+                        <td class="bold">{{ $report->student->student_name }}</td>
+                    </tr>
+                    <tr>
+                        <td>2.</td>
+                        <td>Nama Panggilan</td>
+                        <td>:</td>
+                        <td>{{ $report->student->nickname ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td>3.</td>
+                        <td>Nomor Induk</td>
+                        <td>:</td>
+                        <td>{{ $report->student->student_number }}</td>
+                    </tr>
+                    <tr>
+                        <td>4.</td>
+                        <td>Jenis Kelamin</td>
+                        <td>:</td>
+                        <td>{{ $report->student->gender == 'L' ? 'Laki-laki' : 'Perempuan' }}</td>
+                    </tr>
+                    <tr>
+                        <td>5.</td>
+                        <td>Tempat, Tgl Lahir</td>
+                        <td>:</td>
+                        <td>{{ $report->student->birth_place ?? 'Pekalongan' }},
+                            {{ \Carbon\Carbon::parse($report->student->birth_date)->translatedFormat('d F Y') }}</td>
+                    </tr>
+                    {{-- PENAMBAHAN KELAS DI DATA DIRI --}}
+                    <tr>
+                        <td>6.</td>
+                        <td>Kelas</td>
+                        <td>:</td>
+                        <td>{{ $report->class_name ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td>7.</td>
+                        <td>Nama Orang Tua</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>a. Ayah</td>
+                        <td>:</td>
+                        <td>{{ $report->student->father_name ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>b. Ibu</td>
+                        <td>:</td>
+                        <td>{{ $report->student->mother_name ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td>8.</td>
+                        <td>Alamat Rumah</td>
+                        <td>:</td>
+                        <td>{{ $fullAddress ?? '-' }}</td>
+                    </tr>
+                </table>
+            </td>
         </tr>
+    </table>
+    <br><br><br><br>
+    <table width="100%">
         <tr>
-            <td class="label">Program</td>
-            <td>: {{ $report->activityTransaction->program->program_name }}</td>
-            <td class="label">Periode</td>
-            <td>: {{ \Carbon\Carbon::parse($report->start_date)->isoFormat('D MMM Y') }} -
-                {{ \Carbon\Carbon::parse($report->end_date)->isoFormat('D MMM Y') }}</td>
+            <td width="55%"></td>
+            <td width="45%" class="text-center">
+                Pekalongan, {{ \Carbon\Carbon::parse($report->report_date)->translatedFormat('d F Y') }}<br>Kepala
+                Sekolah,<br><br>
+                @if ($report->principal_signature && file_exists(storage_path('app/public/' . $report->principal_signature)))
+                    <img src="{{ storage_path('app/public/' . $report->principal_signature) }}" style="height: 70px;">
+                @else
+                    <br><br><br>
+                @endif
+                <br><span class="bold"
+                    style="text-decoration: underline;">{{ $report->principal_name ?? 'NURHIKMAH UMAMI, S.Pd.' }}</span>
+            </td>
         </tr>
     </table>
 
-    <table class="assessment-table">
+    <div class="page-break"></div>
+
+    <table class="header-table">
+        <tr>
+            <td width="15%" align="center"><img src="{{ public_path('images/logo2.png') }}"
+                    style="height: 70px; width: auto;"></td>
+            <td width="70%" align="center">
+                <div style="font-size: 12pt; font-weight: bold;">YAYASAN AL JANNAH PEKALONGAN</div>
+                <div class="school-name">AL JANNAH PRESCHOOL AND DAY CARE</div>
+                <div class="school-address">Jl. Giok No.17 Blok B.5 Perumahan Villa Pisma Asri, Desa Podo, Kec.
+                    Kedungwuni<br>Kabupaten Pekalongan - Jawa Tengah 51173<br>Email: info@aljannah.sch.id</div>
+            </td>
+            <td width="15%" align="center"><img src="{{ public_path('images/barcode.png') }}"
+                    style="height: 70px; width: auto;" onerror="this.style.display='none'"></td>
+        </tr>
+    </table>
+
+    <div class="text-center bold" style="margin-bottom: 15px; font-size: 12pt; text-decoration: underline;">LAPORAN
+        PERKEMBANGAN ANAK</div>
+
+    <table width="100%" style="margin-bottom: 20px; font-size: 10pt; border: 1px solid #ccc; padding: 5px;">
+        <tr>
+            <td width="15%" class="bold">Nama Anak</td>
+            <td width="45%">: {{ $report->student->student_name }}</td>
+            <td width="15%" class="bold">Semester</td>
+            <td width="25%">: {{ $report->semester ?? 'Tidak Diketahui' }}</td>
+        </tr>
+        <tr>
+            <td class="bold">Nomor Induk</td>
+            <td>: {{ $report->student->student_number }}</td>
+            <td class="bold">Tahun Ajaran</td>
+            <td class="bold">: {{ $academicYear }}</td>
+        </tr>
+        {{-- PENAMBAHAN KELAS DI HEADER LAPORAN --}}
+        <tr>
+            <td class="bold">Kelas</td>
+            <td colspan="3">: {{ $report->class_name ?? '-' }}</td>
+        </tr>
+    </table>
+
+    <div class="box-title">A. DETAIL PERKEMBANGAN (CHECKLIST)</div>
+    <table class="table-bordered" width="100%">
         <thead>
             <tr>
-                <th style="width: 60%;">ASPEK PERKEMBANGAN</th>
-                <th>BB</th>
-                <th>MB</th>
-                <th>BSH</th>
-                <th>BSB</th>
+                <th rowspan="2" style="vertical-align: middle; width: 60%;">ASPEK PERKEMBANGAN</th>
+                <th colspan="4">PENILAIAN</th>
+            </tr>
+            <tr>
+                <th width="10%">BB</th>
+                <th width="10%">MB</th>
+                <th width="10%">BSH</th>
+                <th width="10%">BSB</th>
             </tr>
         </thead>
         <tbody>
-            @foreach ($themes as $theme)
-                {{-- Baris Tema --}}
-                <tr class="theme-row">
-                    <td>{{ $romanNumerals[$loop->index] }}. {{ $theme->theme_name }}</td>
-                    @foreach (['BB', 'MB', 'BSH', 'BSB'] as $score)
-                        <td class="text-center">
-                            @if ($scoresByThemeId->get($theme->id)?->score === $score)
-                                <span style="font-family: DejaVu Sans, sans-serif;">✔</span>
-                            @endif
-                        </td>
-                    @endforeach
+            @foreach ($groupedDetails as $themeName => $details)
+                <tr style="background-color: #f0f0f0;" class="avoid-break">
+                    <td colspan="5" class="bold text-left" style="padding-left: 5px;">{{ strtoupper($themeName) }}
+                    </td>
                 </tr>
-                {{-- Baris Sub-Tema & Materi --}}
-                @foreach ($theme->subTheme as $subTheme)
-                    <tr class="subtheme-row">
-                        <td>{{ $loop->iteration }}. {{ $subTheme->sub_theme_name }}</td>
-                        @foreach (['BB', 'MB', 'BSH', 'BSB'] as $score)
-                            <td class="text-center">
-                                @if ($scoresBySubThemeId->get($subTheme->id)?->score === $score)
-                                    <span style="font-family: DejaVu Sans, sans-serif;">✔</span>
-                                @endif
-                            </td>
-                        @endforeach
+                @php
+                    $subThemes = $details->groupBy(function ($item) {
+                        return $item->material->subTheme->sub_theme_name ?? 'Umum';
+                    });
+                @endphp
+                @foreach ($subThemes as $subName => $mats)
+                    <tr class="avoid-break">
+                        <td colspan="5" class="italic text-left bold" style="padding-left: 15px; color: #444;">
+                            {{ $subName }}</td>
                     </tr>
-                    @foreach ($subTheme->material as $material)
-                        <tr class="material-row">
-                            <td>{{ $alphabet[$loop->index] }}. {{ $material->material_name }}</td>
-                            @foreach (['BB', 'MB', 'BSH', 'BSB'] as $score)
-                                <td class="text-center">
-                                    @if ($scoresByMaterialId->get($material->id)?->score === $score)
-                                        <span style="font-family: DejaVu Sans, sans-serif;">✔</span>
-                                    @endif
-                                </td>
-                            @endforeach
+                    @foreach ($mats as $det)
+                        <tr class="avoid-break">
+                            <td style="padding-left: 30px;">- {{ $det->material->material_name }}</td>
+                            <td class="check-mark">{{ $det->score == 'BB' ? '✓' : '' }}</td>
+                            <td class="check-mark">{{ $det->score == 'MB' ? '✓' : '' }}</td>
+                            <td class="check-mark">{{ $det->score == 'BSH' ? '✓' : '' }}</td>
+                            <td class="check-mark">{{ $det->score == 'BSB' ? '✓' : '' }}</td>
                         </tr>
                     @endforeach
                 @endforeach
             @endforeach
         </tbody>
     </table>
+    <div style="font-size: 8pt; margin-top: 5px; margin-bottom: 20px;">*Keterangan: <b>BB</b> (Belum Berkembang),
+        <b>MB</b> (Mulai Berkembang), <b>BSH</b> (Berkembang Sesuai Harapan), <b>BSB</b> (Berkembang Sangat Baik)
+    </div>
 
-    {{-- ✅ PINDAH KE SINI: CATATAN NARASI, KESIMPULAN, REKOMENDASI --}}
-    <div style="margin-top: 1.5rem;">
-        <h3 style="font-size: 14pt; margin-top: 0; margin-bottom: 1rem;">CATATAN NARASI PERKEMBANGAN</h3>
-        @foreach ($themes as $theme)
-            @php $currentThemeNote = $notesByThemeId->get($theme->id); @endphp
-            @if ($currentThemeNote && !empty($currentThemeNote->note))
-                <div class="summary-box" style="margin-bottom: 1rem;">
-                    <p class="font-bold">{{ $romanNumerals[$loop->index] }}. {{ $theme->theme_name }}</p>
-                    <p class="text-sm italic" style="margin-top: 4px;">"{{ $currentThemeNote->note }}"</p>
+    @if (isset($themeNotes) && count($themeNotes) > 0)
+        <div class="box-title">B. DESKRIPSI CAPAIAN PEMBELAJARAN PER TEMA</div>
+        @foreach ($groupedDetails as $themeName => $details)
+            @php
+                $firstItem = $details->first();
+                $themeId = $firstItem->material->subTheme->theme_id ?? null;
+                $note = $themeNotes[$themeId] ?? null;
+            @endphp
+            @if ($note)
+                <div class="avoid-break" style="margin-bottom: 10px; border: 1px solid #000; padding: 0;">
+                    <div class="bold"
+                        style="background-color: #f2f2f2; border-bottom: 1px solid #000; padding: 5px 10px;">Tema:
+                        {{ $themeName }}</div>
+                    <div class="text-justify" style="padding: 10px;">{{ $note }}</div>
                 </div>
             @endif
         @endforeach
+    @endif
+    @php
+        $narrations = [
+            [
+                'title' => '1. NILAI AGAMA & BUDI PEKERTI',
+                'text' => $report->religious_values_text,
+                'photo' => $report->religious_values_photo,
+            ],
+            ['title' => '2. JATI DIRI', 'text' => $report->identity_text, 'photo' => $report->identity_photo],
+            [
+                'title' => '3. DASAR LITERASI, MATEMATIKA, SAINS, TEKNOLOGI (STEAM)',
+                'text' => $report->literacy_steam_text,
+                'photo' => $report->literacy_steam_photo,
+            ],
+            [
+                'title' => '4. PROJEK PENGUATAN PROFIL PELAJAR PANCASILA',
+                'text' => $report->p5_text,
+                'photo' => $report->p5_photo,
+            ],
+        ];
+    @endphp
+    @foreach ($narrations as $section)
+        @if ($section['text'] || $section['photo'])
+            <div class="avoid-break" style="margin-bottom: 10px; border: 1px solid #000; padding: 0;">
+                <div class="bold"
+                    style="background-color: #f2f2f2; border-bottom: 1px solid #000; padding: 5px 10px;">
+                    {{ $section['title'] }}</div>
+                <table width="100%" style="border: none; margin: 0;">
+                    <tr>
+                        <td class="text-justify" style="padding: 10px; white-space: pre-line;">
+                            {{ $section['text'] ?? 'Belum ada narasi.' }}</td>
+                        @if ($section['photo'] && file_exists(storage_path('app/public/' . $section['photo'])))
+                            <td width="160" align="center"
+                                style="vertical-align: middle; padding: 10px; border-left: 1px solid #000;">
+                                <img src="{{ storage_path('app/public/' . $section['photo']) }}" class="content-img">
+                                <div style="font-size: 8pt; margin-top: 3px;">Dokumentasi</div>
+                            </td>
+                        @endif
+                    </tr>
+                </table>
+            </div>
+        @endif
+    @endforeach
+
+    <div class="avoid-break">
+        <div class="box-title">D. REFLEKSI & KESIMPULAN</div>
+        <div class="bold" style="margin-top: 10px; margin-left: 5px;">Refleksi Orang Tua / Wali:</div>
+        <div
+            style="border: 1px solid #000; padding: 10px; min-height: 40px; margin-bottom: 10px; text-align: justify; font-style: italic;">
+            {{ $report->parent_reflection_text ?? '(Mohon diisi oleh Orang Tua)' }}</div>
+        <div class="bold" style="margin-left: 5px;">Kesimpulan Perkembangan Anak (Guru):</div>
+        <div style="border: 1px solid #000; padding: 10px; min-height: 40px; text-align: justify;">
+            {{ $report->development_info_text ?? '-' }}</div>
     </div>
 
-    <div class="summary-box">
-        <h4>KESIMPULAN PERKEMBANGAN</h4>
-        <p class="text-sm">{{ $report->overall_summary ?: 'Tidak ada kesimpulan.' }}</p>
+    <div class="avoid-break">
+        <div class="box-title">E. CATATAN DAN REKOMENDASI GURU</div>
+        <div style="border: 1px solid #000; padding: 0; margin-bottom: 10px;">
+            <div class="bold" style="background-color: #f2f2f2; border-bottom: 1px solid #000; padding: 5px 10px;">
+                Catatan Guru</div>
+            <div style="padding: 10px; text-align: justify; white-space: pre-line;">
+                {{ $report->teacher_notes ?? '-' }}</div>
+        </div>
+        <div style="border: 1px solid #000; padding: 0;">
+            <div class="bold" style="background-color: #f2f2f2; border-bottom: 1px solid #000; padding: 5px 10px;">
+                Rekomendasi / Tindak Lanjut</div>
+            <div style="padding: 10px; text-align: justify; white-space: pre-line;">
+                {{ $report->recommendations ?? '-' }}</div>
+        </div>
     </div>
 
-    <div class="summary-box">
-        <h4>CATATAN DAN REKOMENDASI GURU</h4>
-        <p class="text-sm">{{ $report->recommendations ?: 'Tidak ada rekomendasi.' }}</p>
-    </div>
-
-    <div class="page-break"></div>
-
-    {{-- ====================================================== --}}
-    {{--                      LEMBAR KEDUA                      --}}
-    {{-- ====================================================== --}}
-
-    <div class="summary-box" style="margin-top: 0;">
-        <h4>KETERANGAN TAMBAHAN</h4>
-        <table style="border: none;">
-            <tr style="border: none;">
-                <td style="width: 50%; vertical-align: top; border: none; padding-right: 15px;">
-                    <p class="font-bold"
-                        style="border-bottom: 1px solid #eee; padding-bottom: 4px; margin-bottom: 8px;">1. Keterangan
-                        Kesehatan</p>
-                    @foreach ($healthItems as $item)
-                        <p style="font-size: 9pt; margin: 4px 0; display: flex; justify-content: space-between;">
-                            <span>{{ $item }}</span>
-                            <span class="font-bold">{{ $healthDetailsMap->get($item)?->item_value ?: '-' }}</span>
-                        </p>
-                    @endforeach
+    <br>
+    <div class="avoid-break">
+        <div class="box-title">F. DATA KESEHATAN & PRESENSI</div>
+        <table class="table-bordered" width="100%">
+            <tr>
+                <th width="50%">PEMERIKSAAN KESEHATAN & FISIK</th>
+                <th width="50%">PRESENSI (KEHADIRAN)</th>
+            </tr>
+            <tr>
+                <td style="padding: 0;">
+                    <table width="100%" style="margin: 0; border: none;">
+                        <tr style="border-bottom: 1px solid #ccc;">
+                            <td width="50%" style="padding: 4px;">Berat Badan</td>
+                            <td class="bold">: {{ $report->weight }} kg</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #ccc;">
+                            <td style="padding: 4px;">Tinggi Badan</td>
+                            <td class="bold">: {{ $report->height }} cm</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #ccc;">
+                            <td style="padding: 4px;">Lingkar Kepala</td>
+                            <td class="bold">: {{ $report->head_circumference }} cm</td>
+                        </tr>
+                        @foreach ($report->healthDetails as $h)
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 4px;">{{ $h->item_name }}</td>
+                                <td class="bold">: {{ $h->item_value }}</td>
+                            </tr>
+                        @endforeach
+                    </table>
                 </td>
-                <td style="width: 50%; vertical-align: top; border: none; padding-left: 15px;">
-                    <p class="font-bold"
-                        style="border-bottom: 1px solid #eee; padding-bottom: 4px; margin-bottom: 8px;">2. Keterangan
-                        Presensi</p>
-                    <p style="font-size: 9pt; margin: 4px 0; display: flex; justify-content: space-between;">
-                        <span>Sakit</span>
-                        <span class="font-bold">{{ $attendance['sick'] ?? 0 }} hari</span>
-                    </p>
-                    <p style="font-size: 9pt; margin: 4px 0; display: flex; justify-content: space-between;">
-                        <span>Izin</span>
-                        <span class="font-bold">{{ $attendance['excused'] ?? 0 }} hari</span>
-                    </p>
-                    <p style="font-size: 9pt; margin: 4px 0; display: flex; justify-content: space-between;">
-                        <span>Tanpa Keterangan</span>
-                        <span class="font-bold">{{ $attendance['absent'] ?? 0 }} hari</span>
-                    </p>
+                <td style="padding: 0; vertical-align: top;">
+                    @php $att = json_decode($report->attendance_summary, true) ?? []; @endphp
+                    <table width="100%" style="margin: 0; border: none;">
+                        <tr>
+                            <td width="50%" style="padding: 4px;">Sakit</td>
+                            <td class="bold">: {{ $att['Sakit'] ?? 0 }} hari</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px;">Izin</td>
+                            <td class="bold">: {{ $att['Izin'] ?? 0 }} hari</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px;">Tanpa Keterangan</td>
+                            <td class="bold">: {{ $att['Alpha'] ?? 0 }} hari</td>
+                        </tr>
+                        <tr style="background-color: #f0f0f0;">
+                            <td style="padding: 4px;" class="bold">Hadir</td>
+                            <td class="bold">: {{ $att['Hadir'] ?? 0 }} hari</td>
+                        </tr>
+                    </table>
                 </td>
             </tr>
         </table>
     </div>
 
-    {{-- Tanda Tangan --}}
-    <table class="signature-section" style="border: none; font-size: 10pt;">
-        <tr style="border: none;">
-            <td style="width: 50%; text-align: center; border: none;">
-                <p>Mengetahui,</p>
-                <p class="font-bold">Orang Tua/Wali</p>
-                <div
-                    style="margin-top: 70px; border-bottom: 1px solid #333; width: 200px; margin-left: auto; margin-right: auto;">
-                </div>
-            </td>
-            <td style="width: 50%; text-align: center; border: none;">
-                <p>Pekalongan, {{ \Carbon\Carbon::parse($report->created_at)->isoFormat('D MMMM Y') }}</p>
-                <p class="font-bold">Wali Kelas</p>
-                <div
-                    style="margin-top: 70px; border-bottom: 1px solid #333; width: 200px; margin-left: auto; margin-right: auto;">
-                </div>
-                <p style="margin-top: 5px;">{{ $report->creator->user_name ?? auth()->user()->user_name }}</p>
-            </td>
-        </tr>
-    </table>
-    <table class="signature-section" style="border: none; font-size: 10pt;">
-        <tr>
-            <td colspan="2" style="width: 100%; text-align: center; border: none;">
-                <p>Mengetahui,</p>
-            </td>
-        </tr>
-        <tr style="border: none;">
-            <td style="width: 50%; text-align: center; border: none;">
-                <p class="font-bold">Konsultan</p>
-                <p class="font-bold">Tumbuh Kembang Anak</p>
-                <div
-                    style="margin-top: 70px; border-bottom: 1px solid #333; width: 200px; margin-left: auto; margin-right: auto;">
-                </div>
-            </td>
-            <td style="width: 50%; text-align: center; border: none;">
-                <p class="font-bold">Kepala PAUD Non Formal</p>
-                <p class="font-bold">Al Jannah Preschool and Daycare</p>
-                <div
-                    style="margin-top: 70px; border-bottom: 1px solid #333; width: 200px; margin-left: auto; margin-right: auto;">
-                </div>
-            </td>
-        </tr>
-    </table>
+    <br>
+
+    <div class="avoid-break" style="margin-top: 20px;">
+        <table width="100%" class="signature-table">
+            <tr>
+                <td width="50%">
+                    Mengetahui,<br>Orang Tua / Wali<br>
+                    @if ($report->parent_signature && file_exists(storage_path('app/public/' . $report->parent_signature)))
+                        <img src="{{ storage_path('app/public/' . $report->parent_signature) }}" class="sig-img">
+                    @else
+                        <br><br><br>
+                    @endif
+                    <div class="bold" style="text-decoration: underline; margin-top: 5px;">
+                        {{ $report->parent_name ?? '(....................)' }}</div>
+                </td>
+
+                <td width="50%">
+                    Pekalongan, {{ \Carbon\Carbon::parse($report->report_date)->translatedFormat('d F Y') }}<br>Wali
+                    Kelas<br>
+                    @if ($report->teacher_signature && file_exists(storage_path('app/public/' . $report->teacher_signature)))
+                        <img src="{{ storage_path('app/public/' . $report->teacher_signature) }}" class="sig-img">
+                    @else
+                        <br><br><br>
+                    @endif
+                    <div class="bold" style="text-decoration: underline; margin-top: 5px;">
+                        {{ $report->teacher_name ?? '(....................)' }}</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="height: 20px;"></td>
+            </tr>
+            <tr>
+                <td>
+                    Mengetahui,<br>Konsultan<br>
+                    @if ($report->consultant_signature && file_exists(storage_path('app/public/' . $report->consultant_signature)))
+                        <img src="{{ storage_path('app/public/' . $report->consultant_signature) }}" class="sig-img">
+                    @else
+                        <br><br><br>
+                    @endif
+                    <div class="bold" style="text-decoration: underline; margin-top: 5px;">
+                        {{ $report->consultant_name ?? '(....................)' }}</div>
+                </td>
+
+                <td>
+                    Mengetahui,<br>Kepala Sekolah<br>
+                    @if ($report->principal_signature && file_exists(storage_path('app/public/' . $report->principal_signature)))
+                        <img src="{{ storage_path('app/public/' . $report->principal_signature) }}" class="sig-img">
+                    @else
+                        <br><br><br>
+                    @endif
+                    <div class="bold" style="text-decoration: underline; margin-top: 5px;">
+                        {{ $report->principal_name ?? '(....................)' }}</div>
+                </td>
+            </tr>
+        </table>
+    </div>
 
 </body>
 

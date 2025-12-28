@@ -7,10 +7,10 @@
     class="fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:static lg:inset-auto flex flex-col h-screen">
 
     <div class="flex items-center gap-3 px-6 h-20 border-b border-gray-100 dark:border-gray-800 shrink-0">
-        <img src="{{ asset('images/logo.svg') }}" alt="Logo"
-            class="h-20 w-auto hover:scale-105 transition-transform duration-300">
+        <img src="{{ asset('images/logo.png') }}" alt="Logo"
+            class="h-8 w-auto hover:scale-105 transition-transform duration-300">
         <button @click="sidebarOpen = false"
-            class="lg:hidden ml-auto text-gray-400 hover:text-pink-500 transition-colors p-1 rounded-md">
+            class="lg:hidden ml-auto text-gray-400 hover:text-emerald-500 transition-colors p-1 rounded-md">
             <span class="material-symbols-outlined">close</span>
         </button>
     </div>
@@ -25,10 +25,10 @@
             <a href="{{ url('dashboard') }}"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 group hover:translate-x-1
                {{ request()->is('dashboard', 'dashboard_user')
-                   ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                   : 'text-gray-600 dark:text-gray-400 hover:bg-pink-50 dark:hover:bg-gray-800 hover:text-pink-600' }}">
+                   ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                   : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800 hover:text-emerald-600' }}">
                 <span
-                    class="material-symbols-outlined text-[22px] {{ request()->is('dashboard', 'dashboard_user') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">dashboard</span>
+                    class="material-symbols-outlined text-[22px] {{ request()->is('dashboard', 'dashboard_user') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">dashboard</span>
                 Dashboard
             </a>
 
@@ -37,30 +37,68 @@
             {{-- BAGIAN: ADMIN MENU --}}
             @if (Auth::guard('web')->check() && Auth::guard('web')->user()->role->role_name == 'admin')
                 {{-- Order Layanan Link --}}
-                <a href="{{ route('orders.select-student') }}"
+                {{-- <a href="{{ route('orders.select-student') }}"
                     class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 group hover:translate-x-1
                {{ request()->is('service-catalog*')
-                   ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                   : 'text-gray-600 dark:text-gray-400 hover:bg-pink-50 dark:hover:bg-gray-800 hover:text-pink-600' }}">
+                   ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                   : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800 hover:text-emerald-600' }}">
                     <span
-                        class="material-symbols-outlined text-[22px] {{ request()->is('service-catalog*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">shopping_cart</span>
+                        class="material-symbols-outlined text-[22px] {{ request()->is('service-catalog*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">shopping_cart</span>
                     Order Layanan
-                </a>
+                </a> --}}
+
+
+                {{-- LOGIC: Hitung Data & Cek Status Menu --}}
+                {{-- @php
+                    // 1. Hitung jumlah pending (Ganti 'ServiceOrder' dengan nama Model Anda jika beda)
+                    $pendingCount = \App\Models\ServiceOrder::where('status', 'pending_confirmation')->count();
+
+                    // 2. Cek apakah menu ini sedang aktif
+                    $isActive = request()->routeIs('orders.index', 'orders.show', 'orders.payment');
+                @endphp --}}
+
+                {{-- <a href="{{ route('orders.index') }}"
+                    class="relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 group hover:translate-x-1
+                    {{ $isActive
+                        ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800 hover:text-emerald-600' }}"> --}}
+
+                {{-- Icon --}}
+                {{-- <span
+                    class="material-symbols-outlined text-[22px] transition-colors duration-300
+                        {{ $isActive ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">
+                    receipt_long
+                </span> --}}
+
+                {{-- Teks Menu --}}
+                {{-- <span class="flex-1">Data Pesanan</span> --}}
+
+                {{-- BADGE DINAMIS --}}
+                {{-- @if ($pendingCount > 0)
+                    <span
+                        class="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold rounded-full shadow-sm transition-colors duration-300
+                            {{-- JIKA AKTIF: Badge Putih, Teks emerald (Kontras dengan background gradient) --}}
+                {{-- JIKA TIDAK AKTIF: Badge Merah, Teks Putih (Kontras dengan background putih/abu) --}}
+                {{-- {{ $isActive ? 'bg-white text-emerald-600' : 'bg-red-500 text-white group-hover:bg-emerald-600' }}"> --}}
+                {{-- {{ $pendingCount }} --}}
+                {{-- </span> --}}
+                {{-- @endif --}}
+                {{-- </a> --}}
         </div>
         {{-- GROUP: MASTER DATA --}}
         <div class="mb-6">
             <p class="px-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Master Data</p>
 
             {{-- Dropdown Keuangan --}}
-            <div x-data="{ open: {{ request()->is('coming-soon*') ? 'true' : 'false' }} }" class="mb-1">
+            {{-- <div x-data="{ open: {{ request()->is('coming-soon*') ? 'true' : 'false' }} }" class="mb-1">
                 <button @click="open = !open"
                     class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
                         {{ request()->is('coming-soon*')
-                            ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-pink-50 dark:hover:bg-gray-800 hover:text-pink-600' }}">
+                            ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                            : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800 hover:text-emerald-600' }}">
                     <div class="flex items-center gap-3">
                         <span
-                            class="material-symbols-outlined text-[22px] {{ request()->is('coming-soon*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">payments</span>
+                            class="material-symbols-outlined text-[22px] {{ request()->is('coming-soon*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">payments</span>
                         Keuangan
                     </div>
                     <span
@@ -71,27 +109,27 @@
                     class="pl-4 pr-1 mt-1 space-y-1 ml-2">
                     <a href="/coming-soon"
                         class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
-                            {{ request()->is('coming-soon/pembayaran*') ? 'bg-pink-100 text-pink-700 font-bold' : 'text-gray-500 hover:text-pink-600 hover:bg-pink-50' }}">
+                            {{ request()->is('coming-soon/pembayaran*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
                         • Pembayaran Masuk
                     </a>
                     <a href="/coming-soon"
                         class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
-                            {{ request()->is('coming-soon/tagihan*') ? 'bg-pink-100 text-pink-700 font-bold' : 'text-gray-500 hover:text-pink-600 hover:bg-pink-50' }}">
+                            {{ request()->is('coming-soon/tagihan*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
                         • Tagihan
                     </a>
                 </div>
-            </div>
+            </div> --}}
 
             {{-- Dropdown Kurikulum --}}
             <div x-data="{ open: {{ request()->is('themes*', 'subthemes*', 'material*') ? 'true' : 'false' }} }" class="mb-1">
                 <button @click="open = !open"
                     class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
                         {{ request()->is('themes*', 'subthemes*', 'material*')
-                            ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-pink-50 dark:hover:bg-gray-800 hover:text-pink-600' }}">
+                            ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                            : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800 hover:text-emerald-600' }}">
                     <div class="flex items-center gap-3">
                         <span
-                            class="material-symbols-outlined text-[22px] {{ request()->is('themes*', 'subthemes*', 'material*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">menu_book</span>
+                            class="material-symbols-outlined text-[22px] {{ request()->is('themes*', 'subthemes*', 'material*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">menu_book</span>
                         Kurikulum
                     </div>
                     <span
@@ -102,17 +140,17 @@
                     class="pl-4 pr-1 mt-1 space-y-1 ml-2">
                     <a href="{{ route('themes.create') }}"
                         class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
-                            {{ request()->is('themes*') ? 'bg-pink-100 text-pink-700 font-bold' : 'text-gray-500 hover:text-pink-600 hover:bg-pink-50' }}">
+                            {{ request()->is('themes*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
                         • Tema
                     </a>
                     <a href="{{ route('subthemes.create') }}"
                         class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
-                            {{ request()->is('subthemes*') ? 'bg-pink-100 text-pink-700 font-bold' : 'text-gray-500 hover:text-pink-600 hover:bg-pink-50' }}">
+                            {{ request()->is('subthemes*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
                         • Sub Tema
                     </a>
                     <a href="{{ route('material.create') }}"
                         class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
-                            {{ request()->is('material*') ? 'bg-pink-100 text-pink-700 font-bold' : 'text-gray-500 hover:text-pink-600 hover:bg-pink-50' }}">
+                            {{ request()->is('material*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
                         • Materi
                     </a>
                 </div>
@@ -123,11 +161,11 @@
                 <button @click="open = !open"
                     class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
                         {{ request()->is('growth-standards*', 'category-parameter*', 'mmdst-parameter*')
-                            ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-pink-50 dark:hover:bg-gray-800 hover:text-pink-600' }}">
+                            ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                            : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800 hover:text-emerald-600' }}">
                     <div class="flex items-center gap-3">
                         <span
-                            class="material-symbols-outlined text-[22px] {{ request()->is('growth-standards*', 'category-parameter*', 'mmdst-parameter*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">tune</span>
+                            class="material-symbols-outlined text-[22px] {{ request()->is('growth-standards*', 'category-parameter*', 'mmdst-parameter*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">tune</span>
                         Tumbuh Kembang
                     </div>
                     <span
@@ -138,17 +176,17 @@
                     class="pl-4 pr-1 mt-1 space-y-1 ml-2">
                     <a href="{{ route('growth-standards.index') }}"
                         class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
-                            {{ request()->is('growth-standards*') ? 'bg-pink-100 text-pink-700 font-bold' : 'text-gray-500 hover:text-pink-600 hover:bg-pink-50' }}">
+                            {{ request()->is('growth-standards*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
                         • Std Pertumbuhan
                     </a>
                     <a href="{{ route('category-parameter.index') }}"
                         class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
-                            {{ request()->is('category-parameter*') ? 'bg-pink-100 text-pink-700 font-bold' : 'text-gray-500 hover:text-pink-600 hover:bg-pink-50' }}">
+                            {{ request()->is('category-parameter*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
                         • Kategori MMDST
                     </a>
                     <a href="{{ route('mmdst-parameter.index') }}"
                         class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
-                            {{ request()->is('mmdst-parameter*') ? 'bg-pink-100 text-pink-700 font-bold' : 'text-gray-500 hover:text-pink-600 hover:bg-pink-50' }}">
+                            {{ request()->is('mmdst-parameter*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
                         • Parameter MMDST
                     </a>
                 </div>
@@ -159,11 +197,11 @@
                 <button @click="open = !open"
                     class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
                         {{ request()->is('catalog-service*', 'catalog-programs*', 'extra-services*')
-                            ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-pink-50 dark:hover:bg-gray-800 hover:text-pink-600' }}">
+                            ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                            : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800 hover:text-emerald-600' }}">
                     <div class="flex items-center gap-3">
                         <span
-                            class="material-symbols-outlined text-[22px] {{ request()->is('catalog-service*', 'catalog-programs*', 'extra-services*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">design_services</span>
+                            class="material-symbols-outlined text-[22px] {{ request()->is('catalog-service*', 'catalog-programs*', 'extra-services*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">design_services</span>
                         Layanan
                     </div>
                     <span
@@ -174,17 +212,17 @@
                     class="pl-4 pr-1 mt-1 space-y-1 ml-2">
                     <a href="{{ route('catalog-service.index') }}"
                         class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
-                            {{ request()->is('catalog-service*') ? 'bg-pink-100 text-pink-700 font-bold' : 'text-gray-500 hover:text-pink-600 hover:bg-pink-50' }}">
+                            {{ request()->is('catalog-service*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
                         • Katalog Service
                     </a>
                     <a href="{{ route('catalog-programs.index') }}"
                         class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
-                            {{ request()->is('catalog-programs*') ? 'bg-pink-100 text-pink-700 font-bold' : 'text-gray-500 hover:text-pink-600 hover:bg-pink-50' }}">
+                            {{ request()->is('catalog-programs*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
                         • Katalog Program
                     </a>
                     <a href="{{ route('extra-services.index') }}"
                         class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
-                            {{ request()->is('extra-services*') ? 'bg-pink-100 text-pink-700 font-bold' : 'text-gray-500 hover:text-pink-600 hover:bg-pink-50' }}">
+                            {{ request()->is('extra-services*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
                         • Layanan Extra
                     </a>
                 </div>
@@ -195,11 +233,11 @@
                 <button @click="open = !open"
                     class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
                         {{ request()->is('articles*', 'categories*', 'gallery-activity*')
-                            ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-pink-50 dark:hover:bg-gray-800 hover:text-pink-600' }}">
+                            ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                            : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800 hover:text-emerald-600' }}">
                     <div class="flex items-center gap-3">
                         <span
-                            class="material-symbols-outlined text-[22px] {{ request()->is('articles*', 'categories*', 'gallery-activity*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">rss_feed</span>
+                            class="material-symbols-outlined text-[22px] {{ request()->is('articles*', 'categories*', 'gallery-activity*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">rss_feed</span>
                         Konten & Blog
                     </div>
                     <span
@@ -210,17 +248,17 @@
                     class="pl-4 pr-1 mt-1 space-y-1 ml-2">
                     <a href="{{ route('gallery-activity.index') }}"
                         class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
-                            {{ request()->is('gallery-activity*') ? 'bg-pink-100 text-pink-700 font-bold' : 'text-gray-500 hover:text-pink-600 hover:bg-pink-50' }}">
+                            {{ request()->is('gallery-activity*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
                         • Galeri Aktivitas
                     </a>
                     <a href="{{ route('articles.index') }}"
                         class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
-                            {{ request()->is('articles*') ? 'bg-pink-100 text-pink-700 font-bold' : 'text-gray-500 hover:text-pink-600 hover:bg-pink-50' }}">
+                            {{ request()->is('articles*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
                         • Artikel
                     </a>
                     <a href="{{ route('categories.index') }}"
                         class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
-                            {{ request()->is('categories*') ? 'bg-pink-100 text-pink-700 font-bold' : 'text-gray-500 hover:text-pink-600 hover:bg-pink-50' }}">
+                            {{ request()->is('categories*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
                         • Kategori Blog
                     </a>
                 </div>
@@ -231,11 +269,11 @@
                 <button @click="open = !open"
                     class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
                         {{ request()->is('siswa*', 'pengajar*', 'admin*')
-                            ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-pink-50 dark:hover:bg-gray-800 hover:text-pink-600' }}">
+                            ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                            : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800 hover:text-emerald-600' }}">
                     <div class="flex items-center gap-3">
                         <span
-                            class="material-symbols-outlined text-[22px] {{ request()->is('siswa*', 'pengajar*', 'admin*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">group</span>
+                            class="material-symbols-outlined text-[22px] {{ request()->is('siswa*', 'pengajar*', 'admin*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">group</span>
                         Master User
                     </div>
                     <span
@@ -246,17 +284,17 @@
                     class="pl-4 pr-1 mt-1 space-y-1 ml-2">
                     <a href="{{ route('siswa.index') }}"
                         class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
-                            {{ request()->is('siswa*') ? 'bg-pink-100 text-pink-700 font-bold' : 'text-gray-500 hover:text-pink-600 hover:bg-pink-50' }}">
+                            {{ request()->is('siswa*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
                         • Data Siswa
                     </a>
                     <a href="{{ route('pengajar.index') }}"
                         class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
-                            {{ request()->is('pengajar*') ? 'bg-pink-100 text-pink-700 font-bold' : 'text-gray-500 hover:text-pink-600 hover:bg-pink-50' }}">
+                            {{ request()->is('pengajar*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
                         • Data Pengajar
                     </a>
                     <a href="{{ route('admin.index') }}"
                         class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
-                            {{ request()->is('admin*') ? 'bg-pink-100 text-pink-700 font-bold' : 'text-gray-500 hover:text-pink-600 hover:bg-pink-50' }}">
+                            {{ request()->is('admin*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
                         • Data Admin
                     </a>
                 </div>
@@ -270,152 +308,258 @@
             <a href="{{ route('attendance.index') }}"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
                     {{ request()->is('attendance*')
-                        ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-pink-50 hover:text-pink-600' }}">
+                        ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 hover:text-emerald-600' }}">
                 <span
-                    class="material-symbols-outlined text-[22px] {{ request()->is('attendance*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">checklist_rtl</span>
+                    class="material-symbols-outlined text-[22px] {{ request()->is('attendance*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">checklist_rtl</span>
                 Absensi Harian
             </a>
 
             <a href="{{ url('daily-report') }}"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
                     {{ request()->is('daily-report*')
-                        ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-pink-50 hover:text-pink-600' }}">
+                        ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 hover:text-emerald-600' }}">
                 <span
-                    class="material-symbols-outlined text-[22px] {{ request()->is('daily-report*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">edit_note</span>
+                    class="material-symbols-outlined text-[22px] {{ request()->is('daily-report*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">edit_note</span>
                 Laporan Harian
             </a>
 
             <a href="{{ url('measurement') }}"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
                     {{ request()->is('measurement*')
-                        ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-pink-50 hover:text-pink-600' }}">
+                        ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 hover:text-emerald-600' }}">
                 <span
-                    class="material-symbols-outlined text-[22px] {{ request()->is('measurement*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">show_chart</span>
+                    class="material-symbols-outlined text-[22px] {{ request()->is('measurement*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">show_chart</span>
                 Laporan Pertumbuhan
             </a>
 
             <a href="{{ url('mmdst') }}"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
                     {{ request()->is('mmdst*')
-                        ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-pink-50 hover:text-pink-600' }}">
+                        ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 hover:text-emerald-600' }}">
                 <span
-                    class="material-symbols-outlined text-[22px] {{ request()->is('mmdst*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">psychology</span>
+                    class="material-symbols-outlined text-[22px] {{ request()->is('mmdst*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">psychology</span>
                 Laporan Perkembangan
             </a>
 
-            <a href="{{ route('reports.index') }}"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
-                    {{ request()->is('reports*')
-                        ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-pink-50 hover:text-pink-600' }}">
-                <span
-                    class="material-symbols-outlined text-[22px] {{ request()->is('reports*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">assignment</span>
-                Raport Siswa
-            </a>
+            {{-- Logic cek URL diupdate agar mendeteksi 'development-and-growth-report*' --}}
+            <div x-data="{ open: {{ request()->is('reports*', 'development-and-growth-report*') ? 'true' : 'false' }} }" class="mb-1">
+                <button @click="open = !open"
+                    class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
+        {{ request()->is('reports*', 'development-and-growth-report*')
+            ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+            : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800 hover:text-emerald-600' }}">
+                    <div class="flex items-center gap-3">
+                        <span
+                            class="material-symbols-outlined text-[22px] {{ request()->is('reports*', 'development-and-growth-report*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">
+                            assignment
+                        </span>
+                        Raport Siswa
+                    </div>
+                    <span
+                        class="material-symbols-outlined text-sm transition-transform duration-300 {{ request()->is('reports*', 'development-and-growth-report*') ? 'text-white' : 'text-gray-400' }}"
+                        :class="open ? 'rotate-180' : ''">expand_more</span>
+                </button>
+                <div x-show="open" x-collapse x-transition:enter="transition ease-out duration-200"
+                    class="pl-4 pr-1 mt-1 space-y-1 ml-2">
+
+                    {{-- Menu Raport Kurikulum --}}
+                    <a href="{{ route('reports.index') }}"
+                        class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
+            {{ request()->is('reports*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
+                        • Raport Kurikulum
+                    </a>
+
+                    {{-- Menu Raport Tumbuh Kembang --}}
+                    <a href="{{ route('development-reports.index') }}"
+                        class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
+            {{ request()->is('development-and-growth-report*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
+                        • Tumbuh Kembang
+                    </a>
+                </div>
+            </div>
+
+            {{-- GROUP: PENGATURAN --}}
+            <div class="mb-6">
+                <p class="px-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Pengaturan</p>
+
+                <a href="{{ route('api-gemini.index') }}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
+                    {{ request()->is('api-gemini*')
+                        ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800 hover:text-emerald-600' }}">
+                    <span
+                        class="material-symbols-outlined text-[22px] {{ request()->is('api-gemini*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">
+                        smart_toy
+                    </span>
+                    Konfigurasi AI
+                </a>
+            </div>
         </div>
         @endif
 
         {{-- BAGIAN: MENU GURU --}}
         @if (Auth::guard('web')->check() && Auth::guard('web')->user()->role->role_name == 'teacher')
-            <div class="mb-6">
-                <p class="px-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Menu Guru</p>
-                <a href="{{ route('attendance.index') }}"
-                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
-                    {{ request()->is('attendance*')
-                        ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                        : 'text-gray-600 hover:bg-pink-50 hover:text-pink-600' }}">
-                    <span
-                        class="material-symbols-outlined text-[22px] {{ request()->is('attendance*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">checklist_rtl</span>
-                    Absensi Harian
-                </a>
-                <a href="{{ url('daily-report') }}"
-                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
-                    {{ request()->is('daily-report*')
-                        ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                        : 'text-gray-600 hover:bg-pink-50 hover:text-pink-600' }}">
-                    <span
-                        class="material-symbols-outlined text-[22px] {{ request()->is('daily-report*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">edit_note</span>
-                    Laporan Harian
-                </a>
-                <a href="{{ url('measurement') }}"
-                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
-                    {{ request()->is('measurement*')
-                        ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                        : 'text-gray-600 hover:bg-pink-50 hover:text-pink-600' }}">
-                    <span
-                        class="material-symbols-outlined text-[22px] {{ request()->is('measurement*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">show_chart</span>
-                    Laporan Pertumbuhan
-                </a>
-                <a href="{{ url('mmdst') }}"
-                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
-                    {{ request()->is('mmdst*')
-                        ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                        : 'text-gray-600 hover:bg-pink-50 hover:text-pink-600' }}">
-                    <span
-                        class="material-symbols-outlined text-[22px] {{ request()->is('mmdst*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">psychology</span>
-                    Laporan Perkembangan
-                </a>
-                <a href="{{ route('gallery-activity.index') }}"
-                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
-                    {{ request()->is('gallery-activity*')
-                        ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                        : 'text-gray-600 hover:bg-pink-50 hover:text-pink-600' }}">
-                    <span
-                        class="material-symbols-outlined text-[22px] {{ request()->is('gallery-activity*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">photo_library</span>
-                    Galeri Aktivitas
-                </a>
-            </div>
-        @endif
+            {{-- Order Layanan Link --}}
+            <a href="{{ route('orders.select-student') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 group hover:translate-x-1
+               {{ request()->is('service-catalog*')
+                   ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                   : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800 hover:text-emerald-600' }}">
+                <span
+                    class="material-symbols-outlined text-[22px] {{ request()->is('service-catalog*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">shopping_cart</span>
+                Order Layanan
+            </a>
+    </div>
 
-        {{-- BAGIAN: SISWA --}}
-        @if (Auth::guard('student')->check())
-            <div class="mb-6">
-                <p class="px-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Siswa</p>
-                <a href="{{ route('student.attendance.index') }}"
-                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
-                    {{ request()->is('my-attendance*')
-                        ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                        : 'text-gray-600 hover:bg-pink-50 hover:text-pink-600' }}">
+    <div class="mb-6">
+        <p class="px-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Menu Guru</p>
+        <a href="{{ route('attendance.index') }}"
+            class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
+                    {{ request()->is('attendance*')
+                        ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'text-gray-600 hover:bg-emerald-50 hover:text-emerald-600' }}">
+            <span
+                class="material-symbols-outlined text-[22px] {{ request()->is('attendance*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">checklist_rtl</span>
+            Absensi Harian
+        </a>
+        <a href="{{ url('daily-report') }}"
+            class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
+                    {{ request()->is('daily-report*')
+                        ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'text-gray-600 hover:bg-emerald-50 hover:text-emerald-600' }}">
+            <span
+                class="material-symbols-outlined text-[22px] {{ request()->is('daily-report*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">edit_note</span>
+            Laporan Harian
+        </a>
+        <a href="{{ url('measurement') }}"
+            class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
+                    {{ request()->is('measurement*')
+                        ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'text-gray-600 hover:bg-emerald-50 hover:text-emerald-600' }}">
+            <span
+                class="material-symbols-outlined text-[22px] {{ request()->is('measurement*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">show_chart</span>
+            Laporan Pertumbuhan
+        </a>
+        <a href="{{ url('mmdst') }}"
+            class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
+                    {{ request()->is('mmdst*')
+                        ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'text-gray-600 hover:bg-emerald-50 hover:text-emerald-600' }}">
+            <span
+                class="material-symbols-outlined text-[22px] {{ request()->is('mmdst*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">psychology</span>
+            Laporan Perkembangan
+        </a>
+
+        {{-- Logic cek URL diupdate agar mendeteksi 'development-and-growth-report*' --}}
+        <div x-data="{ open: {{ request()->is('reports*', 'development-and-growth-report*') ? 'true' : 'false' }} }" class="mb-1">
+            <button @click="open = !open"
+                class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
+        {{ request()->is('reports*', 'development-and-growth-report*')
+            ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+            : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800 hover:text-emerald-600' }}">
+                <div class="flex items-center gap-3">
                     <span
-                        class="material-symbols-outlined text-[22px] {{ request()->is('my-attendance*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">checklist_rtl</span>
-                    Absensi Saya
-                </a>
-                <a href="{{ route('student.daily-report.index') }}"
-                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group {{ request()->is('student-daily-report*')
-                        ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-pink-50 dark:hover:bg-gray-800 hover:text-pink-600' }}">
-                    <span
-                        class="material-symbols-outlined text-[22px] {{ request()->is('student-daily-report*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">
-                        edit_note
+                        class="material-symbols-outlined text-[22px] {{ request()->is('reports*', 'development-and-growth-report*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">
+                        assignment
                     </span>
-                    Laporan Harian Saya
+                    Raport Siswa
+                </div>
+                <span
+                    class="material-symbols-outlined text-sm transition-transform duration-300 {{ request()->is('reports*', 'development-and-growth-report*') ? 'text-white' : 'text-gray-400' }}"
+                    :class="open ? 'rotate-180' : ''">expand_more</span>
+            </button>
+            <div x-show="open" x-collapse x-transition:enter="transition ease-out duration-200"
+                class="pl-4 pr-1 mt-1 space-y-1 ml-2">
+
+                {{-- Menu Raport Kurikulum --}}
+                <a href="{{ route('reports.index') }}"
+                    class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
+            {{ request()->is('reports*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
+                    • Raport Kurikulum
                 </a>
-                <a href="{{ route('student.measurement.index') }}"
-                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group {{ request()->is('measurements*')
-                        ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-pink-50 dark:hover:bg-gray-800 hover:text-pink-600' }}">
-                    <span
-                        class="material-symbols-outlined text-[22px] {{ request()->is('measurements*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">
-                        Monitoring
-                    </span>
-                    Laporan Pertumbuhan Saya
-                </a>
-                <a href="{{ route('student.development.index') }}"
-                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group {{ request()->is('development-reports*')
-                        ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-pink-50 dark:hover:bg-gray-800 hover:text-pink-600' }}">
-                    <span
-                        class="material-symbols-outlined text-[22px] {{ request()->is('development-reports*') ? 'text-white' : 'text-gray-400 group-hover:text-pink-500' }}">
-                        psychology
-                    </span>
-                    Laporan Pertumbuhan Saya
+
+                {{-- Menu Raport Tumbuh Kembang --}}
+                <a href="{{ route('development-reports.index') }}"
+                    class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
+            {{ request()->is('development-and-growth-report*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
+                    • Tumbuh Kembang
                 </a>
             </div>
-        @endif
+        </div>
+
+        <a href="{{ route('gallery-activity.index') }}"
+            class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
+                    {{ request()->is('gallery-activity*')
+                        ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'text-gray-600 hover:bg-emerald-50 hover:text-emerald-600' }}">
+            <span
+                class="material-symbols-outlined text-[22px] {{ request()->is('gallery-activity*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">photo_library</span>
+            Galeri Aktivitas
+        </a>
+
+    </div>
+    @endif
+
+    {{-- BAGIAN: SISWA --}}
+    @if (Auth::guard('student')->check())
+        <div class="mb-6">
+            <p class="px-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 mt-3">Siswa</p>
+            <a href="{{ route('student.attendance.index') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
+                    {{ request()->is('my-attendance*')
+                        ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'text-gray-600 hover:bg-emerald-50 hover:text-emerald-600' }}">
+                <span
+                    class="material-symbols-outlined text-[22px] {{ request()->is('my-attendance*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">checklist_rtl</span>
+                Absensi Saya
+            </a>
+            <a href="{{ route('student.daily-report.index') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group {{ request()->is('student-daily-report*')
+                    ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800 hover:text-emerald-600' }}">
+                <span
+                    class="material-symbols-outlined text-[22px] {{ request()->is('student-daily-report*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">
+                    edit_note
+                </span>
+                Laporan Harian Saya
+            </a>
+            <a href="{{ route('student.measurement.index') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group {{ request()->is('measurements*')
+                    ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800 hover:text-emerald-600' }}">
+                <span
+                    class="material-symbols-outlined text-[22px] {{ request()->is('measurements*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">
+                    Monitoring
+                </span>
+                Laporan Pertumbuhan Saya
+            </a>
+            <a href="{{ route('student.development.index') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group {{ request()->is('development-reports*')
+                    ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800 hover:text-emerald-600' }}">
+                <span
+                    class="material-symbols-outlined text-[22px] {{ request()->is('development-reports*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">
+                    psychology
+                </span>
+                Laporan Perkembangan Saya
+            </a>
+
+            <a href="{{ route('student.report.history') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group {{ request()->is('report*')
+                    ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800 hover:text-emerald-600' }}">
+                <span
+                    class="material-symbols-outlined text-[22px] {{ request()->is('report*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">
+                    assignment
+                </span>
+                Laporan Raport Saya
+            </a>
+        </div>
+    @endif
 
     </div>
 

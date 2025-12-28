@@ -57,7 +57,7 @@
     <meta name="description"
         content="Kami adalah lembaga pendidikan anak usia dini dengan visi menjadi pusat tumbuh kembang anak, mewujudkan generasi sehat jasmani, rohani, beriman, dan berkarakter unggul. Daycare Al-Jannah menawarkan layanan pendidikan anak, kegiatan menyenangkan, serta perawatan personal untuk setiap anak.">
     <meta property="og:title" content="Daycare Al-Jannah">
-    <meta property="og:image" content="images/logo.svg">
+    <meta property="og:image" content="images/logo.png">
 
     <title>{{ config('app.name', 'Laravel') }}</title>
 

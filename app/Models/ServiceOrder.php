@@ -36,40 +36,42 @@ class ServiceOrder extends Model
         'total_final_price' => 'integer',
     ];
 
-    /**
-     * Relasi: Pesanan ini ditujukan untuk siswa mana.
-     */
-    public function student(): BelongsTo
+    public function student()
     {
-        return $this->belongsTo(Student::class, 'student_id');
+        return $this->belongsTo(Student::class);
     }
 
-    /**
-     * Relasi: Pesanan ini merujuk ke item katalog mana.
-     */
-    public function extraService(): BelongsTo
+    // Relasi ke Layanan (Katalog)
+    public function extraService()
     {
-        return $this->belongsTo(ExtraService::class, 'extra_service_id');
+        return $this->belongsTo(ExtraService::class);
     }
 
-    /**
-     * Relasi: Pesanan ini jika sudah dimasukkan ke Tagihan Induk.
-     */
-    public function billing(): BelongsTo
+    // Relasi ke Staff/Admin yang memproses terakhir kali
+    public function processor()
     {
-        return $this->belongsTo(Billing::class, 'billing_id');
+        return $this->belongsTo(User::class, 'processed_by');
     }
 
-    /**
-     * Relasi: Pesanan ini sebagai item di BillingItem (Relasi Polimorfik).
-     */
-    public function billingItems(): MorphMany
+    // Relasi ke Tagihan (Jika Bill Later)
+    public function billing()
     {
-        return $this->morphMany(BillingItem::class, 'source');
+        return $this->belongsTo(Billing::class);
     }
 
+    // Relasi Polymorphic ke Payments (Bukti Bayar)
+    // public function payments()
+    // {
+    //     return $this->morphMany(Payment::class, 'paymentable');
+    // }
     public function payments()
     {
+        // Parameter ke-2 ('paymentable') harus sama dengan nama di migrasi: $table->morphs('paymentable');
         return $this->morphMany(Payment::class, 'paymentable');
+    }
+    // Relasi ke Bukti Foto Pengerjaan (One to Many)
+    public function evidences()
+    {
+        return $this->hasMany(ServiceOrderEvidence::class);
     }
 }

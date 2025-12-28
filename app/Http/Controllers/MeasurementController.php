@@ -85,6 +85,7 @@ class MeasurementController extends Controller
     // Fungsi untuk menyimpan data pengukuran
     public function store(Request $request)
     {
+        // dd($request->all());
         $validatedData = $request->validate([
             'activity_transaction_id' => 'required|exists:activity_transactions,id',
             'date_measurement' => 'required|date',
@@ -178,35 +179,51 @@ class MeasurementController extends Controller
      */
     public function update(Request $request, Measurement $measurement)
     {
-        // Validasi sama seperti method store
+        // 1. Validasi
         $validatedData = $request->validate([
-            'date_measurement' => 'required|date',
-            'weight' => 'required|numeric|min:0',
-            'height' => 'required|numeric|min:0',
-            'head_circumference' => 'required|numeric|min:0',
-            'arm_circumference' => 'required|numeric|min:0',
+            'date_measurement'      => 'required|date',
+            'weight'                => 'required|numeric|min:0',
+            'height'                => 'required|numeric|min:0',
+            'head_circumference'    => 'required|numeric|min:0', // Pastikan divalidasi
+            'arm_circumference'     => 'required|numeric|min:0', // Pastikan divalidasi
             'measurement_condition' => 'required|string|in:berdiri,terlentang',
-            'note_measurement' => 'nullable|string',
-            'sd_category' => 'required|json',
-            'calculation_results' => 'required|json',
-            'measurement_results' => 'required|json',
+            'note_measurement'      => 'nullable|string',
+            // Allow nullable sementara, nanti kita handle di logic bawah
+            'sd_category'           => 'nullable',
+            'calculation_results'   => 'nullable',
+            'measurement_results'   => 'nullable',
         ]);
 
-        // Update data
+        // 2. Handle Data JSON
+        // Jika input hidden kosong (null), gunakan data lama dari database
+        // Jika tidak kosong, gunakan data baru dari form (hasil hitungan JS)
+        $sdCategory = $request->sd_category ?? $measurement->sd_category;
+        $calcResults = $request->calculation_results ?? $measurement->calculation_results;
+        $measResults = $request->measurement_results ?? $measurement->measurement_results;
+
+        // Pastikan formatnya valid JSON (jika array, encode dulu)
+        if (is_array($sdCategory)) $sdCategory = json_encode($sdCategory);
+        if (is_array($calcResults)) $calcResults = json_encode($calcResults);
+        if (is_array($measResults)) $measResults = json_encode($measResults);
+
+        // 3. Update Database
         $measurement->update([
-            'date_measurement' => $validatedData['date_measurement'],
-            'weight' => $validatedData['weight'],
-            'height' => $validatedData['height'],
-            'head_circumference' => $validatedData['head_circumference'],
-            'arm_circumference' => $validatedData['arm_circumference'],
+            'date_measurement'      => $validatedData['date_measurement'],
+            'weight'                => $validatedData['weight'],
+            'height'                => $validatedData['height'],
+
+            // --- TAMBAHAN PENTING AGAR LINGKAR KEPALA & LENGAN TERSIMPAN ---
+            'head_circumference'    => $validatedData['head_circumference'],
+            'arm_circumference'     => $validatedData['arm_circumference'],
+            // ---------------------------------------------------------------
+
             'measurement_condition' => $validatedData['measurement_condition'],
-            'note_measurement' => $validatedData['note_measurement'],
-            'sd_category' => $validatedData['sd_category'],
-            'calculation_results' => $validatedData['calculation_results'],
-            'measurement_results' => $validatedData['measurement_results'],
+            'note_measurement'      => $validatedData['note_measurement'],
+            'sd_category'           => $sdCategory,
+            'calculation_results'   => $calcResults,
+            'measurement_results'   => $measResults,
         ]);
 
-        // Redirect ke halaman detail dengan pesan sukses
         return redirect()->route('measurement.show', $measurement)->with('success', 'Data pengukuran berhasil diperbarui.');
     }
 

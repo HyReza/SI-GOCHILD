@@ -33,10 +33,10 @@ class StudentDevelopmentController extends Controller
      */
     public function show(MmdstAssessment $report)
     {
-        // 1. Validasi Keamanan: Pastikan laporan ini milik siswa yang sedang login
-        if ($report->student_id !== Auth::guard('student')->id()) {
-            abort(403, 'Anda tidak memiliki akses ke laporan ini.');
-        }
+        // // 1. Validasi Keamanan: Pastikan laporan ini milik siswa yang sedang login
+        // if ($report->student_id !== Auth::guard('student')->id()) {
+        //     abort(403, 'Anda tidak memiliki akses ke laporan ini.');
+        // }
 
         // 2. Load relasi yang dibutuhkan
         $report->load(['items.parameter.stimulationCategory', 'creator', 'student']);

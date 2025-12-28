@@ -42,43 +42,55 @@
     @endif
 
     {{-- Header Aksi + Pencarian --}}
-    <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <!-- Form: di mobile di atas, full width -->
-        <form method="GET" action="{{ route('mmdst-parameter.index') }}"
-            class="order-1 w-full md:order-1 md:flex-1 grid grid-cols-1 sm:grid-cols-12 gap-2">
-            <label for="search" class="sr-only">Cari</label>
-            <input id="search" type="text" name="search" placeholder="Cari unsur / deskripsi / kategori..."
-                class="h-10 sm:h-11 w-full min-w-0 border bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:text-white sm:col-span-8"
-                value="{{ $search ?? '' }}">
+    <div
+        class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between bg-white/50 dark:bg-slate-900/50 p-4 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
 
-            <label for="active" class="sr-only">Status</label>
-            <select id="active" name="active"
-                class="h-10 sm:h-11 w-full border bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:text-white sm:col-span-3">
-                <option value="" {{ ($active ?? '') === '' ? 'selected' : '' }}>Semua Status</option>
-                <option value="1" {{ ($active ?? '') === '1' ? 'selected' : '' }}>Aktif</option>
-                <option value="0" {{ ($active ?? '') === '0' ? 'selected' : '' }}>Nonaktif</option>
-            </select>
+        {{-- Grup 1: Form Pencarian & Filter (Dominan) --}}
+        <form method="GET" action="{{ route('mmdst-parameter.index') }}"
+            class="flex-1 flex flex-col sm:flex-row gap-2 w-full lg:max-w-3xl">
+
+            <div class="relative flex-1 group">
+                <div
+                    class="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
+                    <span class="material-symbols-outlined text-sm">search</span>
+                </div>
+                <input type="text" name="search" value="{{ $search ?? '' }}"
+                    placeholder="Cari unsur, deskripsi, atau kategori..."
+                    class="w-full h-11 pl-11 pr-4 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 border transition-all outline-none">
+            </div>
+
+            <div class="relative min-w-[150px] group">
+                <select name="active"
+                    class="w-full h-11 pl-4 pr-10 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 border appearance-none cursor-pointer transition-all">
+                    <option value="" {{ ($active ?? '') === '' ? 'selected' : '' }}>Semua Status</option>
+                    <option value="1" {{ ($active ?? '') === '1' ? 'selected' : '' }}>Aktif</option>
+                    <option value="0" {{ ($active ?? '') === '0' ? 'selected' : '' }}>Nonaktif</option>
+                </select>
+                <span
+                    class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm group-focus-within:text-emerald-500 transition-colors">expand_more</span>
+            </div>
 
             <button type="submit"
-                class="h-10 sm:h-11 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-4 sm:px-3 sm:col-span-1">
+                class="h-11 px-6 bg-slate-900 dark:bg-slate-800 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-slate-800 dark:hover:bg-slate-700 transition-all active:scale-95 shadow-md">
                 Cari
             </button>
         </form>
 
-        <!-- Aksi: di mobile di bawah, tombol bisa wrap & lebar sama -->
-        <div class="order-2 w-full md:order-2 md:w-auto flex flex-wrap gap-2">
+        {{-- Grup 2: Tombol Aksi (Kanan) --}}
+        <div class="flex flex-wrap gap-2 w-full lg:w-auto">
             <button onclick="openModalCreate()"
-                class="flex-1 sm:flex-none flex items-center justify-center gap-2 font-semibold bg-green-500 dark:bg-green-600 h-10 px-4 rounded-lg shadow-md hover:shadow-none hover:bg-green-600 dark:hover:bg-green-700 text-white">
-                <span class="text-sm md:text-xs">Tambah Parameter</span>
-                <span class="material-symbols-outlined text-sm md:text-xs">add</span>
+                class="flex-1 lg:flex-none inline-flex items-center justify-center gap-2 px-5 h-11 bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-95">
+                <span>Tambah</span>
+                <span class="material-symbols-outlined text-sm font-black">add_box</span>
             </button>
 
             <button onclick="openImportModal()"
-                class="flex-1 sm:flex-none flex items-center justify-center gap-2 font-semibold bg-amber-500 dark:bg-amber-600 h-10 px-4 rounded-lg shadow-md hover:bg-amber-600 dark:hover:bg-amber-700 text-white">
-                <span class="text-sm md:text-xs">Import Excel</span>
-                <span class="material-symbols-outlined text-sm md:text-xs">upload_file</span>
+                class="flex-1 lg:flex-none inline-flex items-center justify-center gap-2 px-5 h-11 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-amber-500/20 transition-all active:scale-95">
+                <span>Import</span>
+                <span class="material-symbols-outlined text-sm font-black">upload_file</span>
             </button>
         </div>
+
     </div>
 
 

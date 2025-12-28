@@ -11,9 +11,15 @@ class SubTheme extends Model
 
     protected $guarded = [];
 
-    public function material()
+    // public function material()
+    // {
+    //     return $this->hasMany(Material::class, 'id');
+    // }
+
+    public function materials()
     {
-        return $this->hasMany(Material::class, 'id');
+        // Pastikan foreign key di tabel materials adalah 'sub_theme_id'
+        return $this->hasMany(Material::class, 'sub_theme_id');
     }
 
     public function theme()

@@ -31,10 +31,10 @@ return new class extends Migration
 
             // Status Order
             $table->enum('status', [
-                'pending_payment',      // (Untuk Pay Now) Menunggu upload bukti
-                'pending_confirmation', // (Untuk Pay Now) Sudah upload, tunggu admin cek
-                'pending_process',      // Sedang diproses guru/admin
-                'completed',            // Selesai dikerjakan
+                'pending_payment',      // (Pay Now) Menunggu upload bukti bayar
+                'pending_confirmation', // (Pay Now) Sudah upload, tunggu admin cek
+                'pending_process',      // Sedang diproses guru/admin (menunggu dikerjakan)
+                'completed',            // Selesai dikerjakan (Foto bukti sudah diupload)
                 'cancelled',            // Batal
                 'rejected'              // Ditolak
             ])->default('pending_process');
@@ -42,7 +42,15 @@ return new class extends Migration
             // Relasi ke Tagihan (Jika bill_later)
             $table->foreignId('billing_id')->nullable()->constrained('billings')->nullOnDelete();
 
+            // Siapa yang memproses/mengubah status
             $table->foreignId('processed_by')->nullable()->constrained('users')->nullOnDelete();
+
+            // Catatan Penyelesaian (Misal: "Anak kooperatif saat dipijat")
+            $table->text('completion_note')->nullable();
+
+            // Waktu selesai dikerjakan
+            $table->dateTime('completed_at')->nullable();
+
             $table->timestamps();
         });
     }

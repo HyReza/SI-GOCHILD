@@ -43,4 +43,37 @@ class Student extends Authenticatable
     {
         return $this->birth_date ? $this->birth_date->diffInDays($date) : 0;
     }
+
+
+
+    public function reports()
+    {
+        return $this->hasMany(Report::class, 'student_id');
+    }
+
+    /**
+     * Relasi ke absensi (asumsi Anda memiliki Model Attendance).
+     */
+    public function attendances()
+    {
+        // Ganti 'Attendance' jika Model absensi Anda bernama lain
+        return $this->hasMany(Attendance::class, 'student_id');
+    }
+
+    // --- Tambahkan metode helper untuk mendapatkan data yang Anda butuhkan di view ---
+
+    // Metode helper untuk mendapatkan total absen (Sakit/Izin/Alpha)
+    public function getTotalAbsenceAttribute()
+    {
+        // Asumsi kolom status di tabel attendances: 'Sakit', 'Izin', 'Alpha'
+        return $this->attendances()
+            ->whereIn('status', ['Sakit', 'Izin', 'Alpha'])
+            ->count();
+    }
+
+    // Metode helper untuk mendapatkan rapor terbaru
+    public function getRecentReportAttribute()
+    {
+        return $this->reports()->latest()->first();
+    }
 }

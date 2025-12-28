@@ -2,322 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+    :root {
+        --emerald-vibrant: oklch(0.696 0.17 162.48);
+        --blue-vibrant: oklch(0.623 0.214 259.815);
+        --teal-vibrant: oklch(0.704 0.14 182.503);
+    }
 
-/*
-LOADER
-*/
-.loader-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    transition: opacity 0.3s, visibility 0.3s;
+    /* Kursor asli dikembalikan ke default untuk halaman selain quest */
+    html {
+        cursor: auto;
+    }
+
+    body {
+        @apply transition-colors duration-1000;
+    }
 }
 
-.loader {
-    height: 20px;
-    width: 250px;
-    position: relative;
-}
-
-.loader--dot {
-    animation-name: loader;
-    animation-timing-function: ease-in-out;
-    animation-duration: 3s;
-    animation-iteration-count: infinite;
-    height: 20px;
-    width: 20px;
-    border-radius: 100%;
-    position: absolute;
-    border: 0.5px solid;
-}
-
-.loader--dot:first-child {
-    background-color: #8cc759;
-    animation-delay: 0.5s;
-}
-
-.loader--dot:nth-child(2) {
-    background-color: #8c6daf;
-    animation-delay: 0.4s;
-}
-
-.loader--dot:nth-child(3) {
-    background-color: #ef5d74;
-    animation-delay: 0.3s;
-}
-
-.loader--dot:nth-child(4) {
-    background-color: #f9a74b;
-    animation-delay: 0.2s;
-}
-
-.loader--dot:nth-child(5) {
-    background-color: #60beeb;
-    animation-delay: 0.1s;
-}
-
-.loader--dot:nth-child(6) {
-    background-color: #fbef5a;
-    animation-delay: 0s;
-}
-
-.loader--text {
-    position: absolute;
-    top: 50px;
-    left: 0;
-    right: 0;
-    width: 4rem;
-    margin: auto;
-    text-align: center;
-}
-
-.loader--text:after {
-    content: "Loading";
-    font-weight: bold;
-    animation-name: loading-text;
-    animation-duration: 3s;
-    animation-iteration-count: infinite;
-}
-
-/* Dark Mode Styles */
-@media (prefers-color-scheme: dark) {
+@layer components {
+    /* --- LOADING SYSTEM (DIRETAINKAN) --- */
     .loader-container {
-        background: #1a1a1a; /* Dark background for dark mode */
+        @apply fixed inset-0 w-full h-full flex items-center justify-center bg-white dark:bg-[#020617] transition-all duration-700 ease-in-out;
+        z-index: 1000001;
+    }
+
+    .loader {
+        @apply relative w-[250px] h-[20px];
     }
 
     .loader--dot {
-        border: 2px solid #333; /* Dark border for dark mode */
+        @apply absolute w-5 h-5 rounded-full border border-black/5 dark:border-white/5;
+        animation: loader-slide 3s ease-in-out infinite;
     }
 
-    .loader--dot:first-child {
-        background-color: #8cc759;
-    }
+    .loader--dot:nth-child(1) { background-color: var(--emerald-vibrant); animation-delay: 0.5s; }
+    .loader--dot:nth-child(2) { background-color: #34d399; animation-delay: 0.4s; }
+    .loader--dot:nth-child(3) { background-color: var(--teal-vibrant); animation-delay: 0.3s; }
+    .loader--dot:nth-child(4) { background-color: #38bdf8; animation-delay: 0.2s; }
+    .loader--dot:nth-child(5) { background-color: var(--blue-vibrant); animation-delay: 0.1s; }
+    .loader--dot:nth-child(6) { background-color: #6366f1; animation-delay: 0s; }
 
-    .loader--dot:nth-child(2) {
-        background-color: #8c6daf;
-    }
-
-    .loader--dot:nth-child(3) {
-        background-color: #ef5d74;
-    }
-
-    .loader--dot:nth-child(4) {
-        background-color: #f9a74b;
-    }
-
-    .loader--dot:nth-child(5) {
-        background-color: #60beeb;
-    }
-
-    .loader--dot:nth-child(6) {
-        background-color: #fbef5a;
+    .loader--text {
+        @apply absolute top-[60px] inset-x-0 mx-auto text-center font-bold tracking-[0.3em] uppercase text-[10px] text-slate-400 dark:text-slate-500;
     }
 
     .loader--text:after {
-        color: #e0e0e0; /* Light text color for dark mode */
-    }
-}
-
-@keyframes loader {
-    15% {
-        transform: translateX(0);
+        content: "Memuat Sistem";
+        animation: loading-text-anim 3s infinite;
     }
 
-    45% {
-        transform: translateX(230px);
+    @keyframes loader-slide {
+        15% { transform: translateX(0); }
+        45%, 65% { transform: translateX(230px); }
+        95% { transform: translateX(0); }
     }
 
-    65% {
-        transform: translateX(230px);
-    }
-
-    95% {
-        transform: translateX(0);
-    }
-}
-
-@keyframes loading-text {
-    0% {
-        content: "Loading";
-    }
-
-    25% {
-        content: "Loading.";
-    }
-
-    50% {
-        content: "Loading..";
-    }
-
-    75% {
-        content: "Loading...";
+    @keyframes loading-text-anim {
+        0%, 100% { content: "Memuat Sistem"; opacity: 1; }
+        25% { content: "Memuat Sistem."; opacity: 0.8; }
+        50% { content: "Memuat Sistem.."; opacity: 1; }
+        75% { content: "Memuat Sistem..."; opacity: 0.8; }
     }
 }
-
-/*
-PARTICLES
-*/
-:root {
-    --particle-color: #000000;
-    /* Default untuk mode light */
-}
-
-@media (prefers-color-scheme: dark) {
-    :root {
-        --particle-color: #ffffff;
-        /* Untuk mode dark */
-    }
-}
-
-#particles-js {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
-    pointer-events: none;
-}
-
-
-@keyframes fadeInUp {
-    0% {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes fadeOutUp {
-    0% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    100% {
-        opacity: 0;
-        transform: translateY(20px);
-        /* Falling effect */
-    }
-}
-
-.fade-in-up {
-    opacity: 0;
-    animation: fadeInUp 1s ease forwards;
-}
-
-.fade-out-up {
-    opacity: 1;
-    animation: fadeOutUp 1s ease forwards;
-}
-
-
-/*
-Animasi Service
-*/
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.animate-fadeInUp {
-    animation: fadeInUp 0.8s ease-out;
-}
-
-.animate-fadeInUp.delay-100 {
-    animation-delay: 0.1s;
-}
-
-.animate-fadeInUp.delay-200 {
-    animation-delay: 0.2s;
-}
-
-.animate-fadeInUp.delay-300 {
-    animation-delay: 0.3s;
-}
-
-.animate-fadeInUp.delay-400 {
-    animation-delay: 0.4s;
-}
-
-/* Slide-in from left animation */
-@keyframes slideInLeft {
-    from {
-        opacity: 0;
-        transform: translateX(-50px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-.slide-in-left {
-    opacity: 0;
-    animation: slideInLeft 1s ease-out forwards;
-}
-
-/* Slide-in from right animation */
-@keyframes slideInRight {
-    from {
-        opacity: 0;
-        transform: translateX(50px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-.slide-in-right {
-    opacity: 0;
-    animation: slideInRight 1s ease-out forwards;
-}
-
-
-
-
-/* Width of the scrollbar */
-::-webkit-scrollbar {
-    width: 8px;  /* Adjust the width here */
-    height: 8px; /* Adjust the height for horizontal scrollbars */
-}
-
-/* Background of the scrollbar track */
-::-webkit-scrollbar-track {
-    background: #f1f1f1; /* Color of the scrollbar track */
-    border-radius: 10px; /* Rounded corners on the track */
-}
-
-/* Scrollbar handle (thumb) */
-::-webkit-scrollbar-thumb {
-    background-color: #888888; /* Color of the scrollbar handle */
-    border-radius: 10px; /* Rounded corners on the scrollbar handle */
-    border: 2px solid #f1f1f1; /* Adds a border to make the handle thinner */
-}
-
-/* Hover state for the scrollbar handle */
-::-webkit-scrollbar-thumb:hover {
-    background-color: #555; /* Darker color when hovered */
-}
-
-
-/* QUILT STYLES */

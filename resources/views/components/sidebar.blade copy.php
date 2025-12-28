@@ -9,7 +9,7 @@
     class="bg-white dark:bg-gray-900 h-lvh w-56 shadow-xl fixed inset-0 lg:static z-30">
     <div class="p-4 text-start justify-start">
         <div class="flex mb-6 gap-4 items-center">
-            <img src="{{ asset('images/logo.svg') }}" alt="Logo" class="w-40 lg:w-52">
+            <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-40 lg:w-52">
             <button>
                 <span @click="sidebarOpen = false"
                     class="material-symbols-outlined lg:hidden text-gray-800 dark:text-gray-400">close</span>

@@ -1,36 +1,98 @@
 <x-app-layout>
     <x-slot:title>Detail Penilaian MMDST</x-slot:title>
 
+    {{-- Style Khusus --}}
+    <style>
+        /* Transisi halus */
+        tr.hover-row {
+            transition: background-color 0.2s;
+        }
+
+        .bucket-badge {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        /* Animasi Pulse Halus untuk Delay */
+        @keyframes soft-pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .animate-soft-pulse {
+            animation: soft-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+
     @php
         /** @var \App\Models\MmdstAssessment $assessment */
         $student = $assessment->student;
         $creator = $assessment->creator;
-        $dateID = optional($assessment->assessment_date)->format('d M Y');
-        $ageDays = (int) ($assessment->age_in_days ?? 0);
+        $dateID = optional($assessment->assessment_date)->translatedFormat('d F Y');
 
-        // Rekap hasil total
+        // 1. Usia Detail
+        $ageInDays = (int) ($assessment->age_in_days ?? 0);
+        $ageDetail = '—';
+        if ($student && $student->birth_date && $assessment->assessment_date) {
+            $birthDate = \Carbon\Carbon::parse($student->birth_date);
+            $assessDate = \Carbon\Carbon::parse($assessment->assessment_date);
+            $ageDetail = $birthDate->diff($assessDate)->format('%y Thn, %m Bln, %d Hr');
+        }
+
+        // 2. Rekap Hasil (Tanpa NR)
+        $items = $assessment->items;
         $counts = [
-            'P' => $assessment->items->where('result_code', 'P')->count(),
-            'F' => $assessment->items->where('result_code', 'F')->count(),
-            'R' => $assessment->items->where('result_code', 'R')->count(),
-            'OP' => $assessment->items->where('result_code', 'OP')->count(),
-            'NR' => $assessment->items->where('result_code', 'NR')->count(),
+            'P' => $items->where('result_code', 'P')->count(),
+            'F' => $items->where('result_code', 'F')->count(),
+            'R' => $items->where('result_code', 'R')->count(),
+            'OP' => $items->where('result_code', 'OP')->count(),
         ];
         $totalRated = array_sum($counts);
-        $totalDelay = $assessment->items->where('is_delay', true)->count();
-        $totalAgeLine = $assessment->items->where('is_age_line', true)->count();
+        $totalDelay = $items->where('is_delay', true)->count();
 
-        // overall_result: NORMAL/ABNORMAL/QUESTIONABLE/UNTESTABLE (atau null)
+        // 3. Overall Result
         $overall = $assessment->overall_result ?? '—';
-        $overallBadge = match ($assessment->overall_result) {
-            'NORMAL' => 'bg-green-100 text-green-700',
-            'ABNORMAL' => 'bg-red-100 text-red-700',
-            'QUESTIONABLE' => 'bg-yellow-100 text-yellow-700',
-            'UNTESTABLE' => 'bg-gray-200 text-gray-700',
-            default => 'bg-gray-200 text-gray-700',
+        $overallBadge = match ($overall) {
+            'NORMAL' => 'bg-green-100 text-green-700 border-green-200',
+            'ABNORMAL' => 'bg-red-100 text-red-700 border-red-200',
+            'QUESTIONABLE' => 'bg-yellow-100 text-yellow-700 border-yellow-200',
+            'UNTESTABLE' => 'bg-gray-200 text-gray-700 border-gray-300',
+            default => 'bg-gray-100 text-gray-500 border-gray-200',
         };
 
-        // Helper label & warna
+        // 4. Grouping & Summary Sektor
+        $groupedParams = $parameters->groupBy(
+            fn($p) => optional($p->stimulationCategory)->category_parameter_name ?? 'Tanpa Kategori',
+        );
+
+        $sectorSummary = [];
+        foreach ($items as $it) {
+            $cat = optional($it->parameter?->stimulationCategory)->category_parameter_name ?? 'Tanpa Kategori';
+            if (!isset($sectorSummary[$cat])) {
+                $sectorSummary[$cat] = ['P' => 0, 'F' => 0, 'R' => 0, 'OP' => 0, 'total' => 0, 'delay' => 0];
+            }
+            if (in_array($it->result_code, ['P', 'F', 'R', 'OP'])) {
+                $sectorSummary[$cat][$it->result_code]++;
+            }
+            $sectorSummary[$cat]['total']++;
+            if ($it->is_delay) {
+                $sectorSummary[$cat]['delay']++;
+            }
+        }
+
+        // Helper: Persentase
+        $pct = fn($num, $den) => $den ? number_format(($num / $den) * 100, 0) . '%' : '0%';
+
+        // Helper: Text & Class
         function resultText($code)
         {
             return match ($code) {
@@ -38,248 +100,249 @@
                 'F' => 'GAGAL',
                 'R' => 'ULANG',
                 'OP' => 'BELUM',
-                'NR' => 'TIDAK WAJIB',
                 default => '—',
             };
         }
         function resultClass($code)
         {
             return match ($code) {
-                'P' => 'bg-green-100 text-green-700',
-                'F' => 'bg-red-100 text-red-700',
-                'R' => 'bg-yellow-100 text-yellow-700',
-                'OP' => 'bg-gray-200 text-gray-700',
-                'NR' => 'bg-purple-100 text-purple-700',
-                default => 'bg-gray-200 text-gray-700',
-            };
-        }
-        function bucketClass($bucket, $passed)
-        {
-            if ($bucket === 'OVERDUE' && $passed) {
-                return 'bg-green-100 text-green-700';
-            }
-            return match ($bucket) {
-                'OVERDUE' => 'bg-red-100 text-red-700',
-                'AT_LINE' => 'bg-blue-100 text-blue-700',
-                'IN_WINDOW' => 'bg-yellow-100 text-yellow-700',
-                default => 'bg-gray-200 text-gray-700',
-            };
-        }
-        function bucketText($bucket, $passed)
-        {
-            if ($bucket === 'OVERDUE' && $passed) {
-                return 'Lewat Usia (Lulus)';
-            }
-            return match ($bucket) {
-                'OVERDUE' => 'Lewat Usia',
-                'AT_LINE' => 'Di Garis Usia',
-                'IN_WINDOW' => 'Rentang Usia',
-                default => 'Belum Waktunya',
+                'P' => 'bg-green-100 text-green-700 border-green-200',
+                'F' => 'bg-red-100 text-red-700 border-red-200',
+                'R' => 'bg-yellow-100 text-yellow-700 border-yellow-200',
+                'OP' => 'bg-gray-200 text-gray-700 border-gray-300',
+                default => 'bg-gray-100 text-gray-400',
             };
         }
 
-        // $parameters: semua parameter aktif (dari controller)
-        // $testedMap: [param_id => ['tested'=>bool,'result_code'=>'P/F/...','is_delay'=>bool,'is_age_line'=>bool]]
-        // $bucketMap : [param_id => 'OVERDUE'|'AT_LINE'|'IN_WINDOW'|'NOT_YET']
-        $groupedParams = $parameters->groupBy(
-            fn($p) => optional($p->stimulationCategory)->category_parameter_name ?? 'Tanpa Kategori',
-        );
+        // Helper: Bucket Usia
+        function getBucketInfo($age, $p25, $p75, $p100, $passed)
+        {
+            $p25 = (int) $p25;
+            $p75 = (int) $p75;
+            $p100 = (int) $p100;
 
-        // Ringkasan per sektor (kategori)
-        // Kita hitung langsung dari items yang ada + relasi parameter->stimulationCategory (sudah di-load)
-        $sectorSummary = [];
-        foreach ($assessment->items as $it) {
-            $cat = optional($it->parameter?->stimulationCategory)->category_parameter_name ?? 'Tanpa Kategori';
-            $sectorSummary[$cat] = $sectorSummary[$cat] ?? [
-                'P' => 0,
-                'F' => 0,
-                'R' => 0,
-                'OP' => 0,
-                'NR' => 0,
-                'total' => 0,
-                'delay' => 0,
-            ];
-            $sectorSummary[$cat][$it->result_code] = ($sectorSummary[$cat][$it->result_code] ?? 0) + 1;
-            $sectorSummary[$cat]['total'] += 1;
-            if ($it->is_delay) {
-                $sectorSummary[$cat]['delay'] += 1;
+            if ($age > $p100 && $passed) {
+                return ['label' => 'Lewat Usia (Lulus)', 'cls' => 'bg-green-100 text-green-700 border-green-200'];
             }
+            if ($age < $p25) {
+                return ['label' => 'Belum Waktunya', 'cls' => 'bg-gray-100 text-gray-500 border-gray-200'];
+            }
+            if ($age > $p100) {
+                return ['label' => 'Lewat Usia', 'cls' => 'bg-red-100 text-red-700 border-red-200'];
+            }
+            if ($age >= $p75 && $age <= $p100) {
+                return ['label' => 'Zona Kritis', 'cls' => 'bg-orange-100 text-orange-800 border-orange-300 font-bold'];
+            }
+            if ($age == $p25) {
+                return ['label' => 'Di Garis Usia', 'cls' => 'bg-blue-600 text-white font-bold'];
+            }
+
+            return ['label' => 'Rentang Usia', 'cls' => 'bg-blue-100 text-blue-700 border-blue-200'];
         }
-        // Helper persentase aman
-        $pct = function ($num, $den) {
-            if (!$den) {
-                return '0%';
-            }
-            return number_format(($num / $den) * 100, 0) . '%';
-        };
     @endphp
 
-    {{-- Header + Action Bar --}}
-    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
+    {{-- === HEADER & ACTION BAR === --}}
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
         <div>
-            <h1 class="text-lg font-semibold">Detail Penilaian MMDST</h1>
-            <p class="text-sm text-gray-500">
-                {{ $student?->student_name ?? '—' }}
-                @if ($student?->student_number)
-                    <span class="text-gray-400">({{ $student->student_number }})</span>
-                @endif
-                • Tgl Penilaian: <b>{{ $dateID ?? '—' }}</b> • Usia: <b>{{ $ageDays }}</b> hari
+            <h1 class="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                <span class="material-symbols-outlined text-blue-600">assignment_turned_in</span>
+                Detail Penilaian MMDST
+            </h1>
+            <p class="text-sm text-gray-500 mt-1">
+                Siswa: <b>{{ $student?->student_name ?? '—' }}</b>
+                <span class="text-gray-400">({{ $student?->student_number ?? '-' }})</span>
+                &bull; Tgl: <b>{{ $dateID }}</b>
             </p>
         </div>
 
         <div class="flex flex-wrap gap-2">
-            @if ($student)
-                <a href="{{ route('student.development.index') }}"
-                    class="inline-flex items-center gap-1 border rounded-lg px-3 md:px-4 h-10">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="w-4 h-4 mr-2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-                    </svg>
-                    <span>Kembali</span>
-                </a>
-            @endif
+            <a href="{{ route('student.development.index') }}"
+                class="inline-flex items-center gap-1 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition">
+                <span class="material-symbols-outlined text-sm">history</span> Riwayat
+            </a>
         </div>
     </div>
 
-    {{-- Ringkasan Atas --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div class="p-4 bg-white dark:bg-gray-900 rounded-md shadow">
-            <div class="text-xs text-gray-500 mb-1">Hasil Keseluruhan</div>
-            <div class="flex items-center gap-2">
-                <span class="px-2 py-1 rounded text-sm font-semibold {{ $overallBadge }}">{{ $overall }}</span>
+    {{-- === RINGKASAN DATA (GRID) === --}}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+        {{-- Kartu 1: Hasil Overall --}}
+        <div
+            class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 flex flex-col justify-center items-center text-center">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Hasil Diagnosis</h3>
+            <div class="px-5 py-2 rounded-full text-lg font-bold border-2 {{ $overallBadge }} mb-2">
+                {{ $overall }}
             </div>
-            <div class="mt-2 text-[11px] text-gray-500">
+            @if ($totalDelay > 0)
+                <div
+                    class="inline-flex items-center gap-1 px-3 py-1 bg-red-50 text-red-700 rounded-full text-xs font-bold border border-red-100 animate-soft-pulse">
+                    <span class="material-symbols-outlined text-sm">warning</span>
+                    {{ $totalDelay }} Item Delay
+                </div>
+            @else
+                <span class="text-xs text-gray-400 italic">Tidak ada item Delay</span>
+            @endif
+            <div class="mt-4 pt-3 border-t border-gray-100 w-full text-xs text-gray-500">
                 Petugas: <b>{{ $creator?->user_name ?? '—' }}</b>
             </div>
         </div>
 
-        <div class="p-4 bg-white dark:bg-gray-900 rounded-md shadow">
-            <div class="text-xs text-gray-500 mb-2">Ringkasan Nilai</div>
-            <div class="grid grid-cols-5 gap-2 text-center">
-                <div>
-                    <div class="px-2 py-1 rounded text-xs bg-green-100 text-green-700">P</div>
-                    <div class="mt-1 font-semibold">{{ $counts['P'] }}</div>
-                </div>
-                <div>
-                    <div class="px-2 py-1 rounded text-xs bg-red-100 text-red-700">F</div>
-                    <div class="mt-1 font-semibold">{{ $counts['F'] }}</div>
-                </div>
-                <div>
-                    <div class="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-700">R</div>
-                    <div class="mt-1 font-semibold">{{ $counts['R'] }}</div>
-                </div>
-                <div>
-                    <div class="px-2 py-1 rounded text-xs bg-gray-200 text-gray-700">OP</div>
-                    <div class="mt-1 font-semibold">{{ $counts['OP'] }}</div>
-                </div>
-                <div>
-                    <div class="px-2 py-1 rounded text-xs bg-purple-100 text-purple-700">NR</div>
-                    <div class="mt-1 font-semibold">{{ $counts['NR'] }}</div>
+        {{-- Kartu 2: Statistik Nilai --}}
+        <div
+            class="lg:col-span-2 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Statistik Nilai</h3>
+                <div class="text-right">
+                    <span class="text-xs text-gray-500 block">Usia Kronologis</span>
+                    <span class="font-bold text-blue-600 text-sm">{{ $ageDetail }}</span>
+                    <span class="text-xs text-gray-400">({{ $ageInDays }} hari)</span>
                 </div>
             </div>
-            <div class="mt-2 text-[11px] text-gray-500 flex items-center justify-between">
-                <span>Total dinilai: <b>{{ $totalRated }}</b></span>
-                <span>Di garis usia: <b>{{ $totalAgeLine }}</b></span>
+
+            <div class="grid grid-cols-4 gap-4">
+                <div class="text-center p-3 rounded-lg bg-green-50 border border-green-100">
+                    <div class="text-2xl font-bold text-green-600">{{ $counts['P'] }}</div>
+                    <div class="text-[10px] font-bold text-green-800 uppercase mt-1">Lulus (P)</div>
+                </div>
+                <div class="text-center p-3 rounded-lg bg-red-50 border border-red-100">
+                    <div class="text-2xl font-bold text-red-600">{{ $counts['F'] }}</div>
+                    <div class="text-[10px] font-bold text-red-800 uppercase mt-1">Gagal (F)</div>
+                </div>
+                <div class="text-center p-3 rounded-lg bg-yellow-50 border border-yellow-100">
+                    <div class="text-2xl font-bold text-yellow-600">{{ $counts['R'] }}</div>
+                    <div class="text-[10px] font-bold text-yellow-800 uppercase mt-1">Ulang (R)</div>
+                </div>
+                <div class="text-center p-3 rounded-lg bg-gray-50 border border-gray-200">
+                    <div class="text-2xl font-bold text-gray-600">{{ $counts['OP'] }}</div>
+                    <div class="text-[10px] font-bold text-gray-800 uppercase mt-1">Belum (OP)</div>
+                </div>
+            </div>
+            <div class="mt-4 text-center text-xs text-gray-500">
+                Total item dinilai: <b>{{ $totalRated }}</b>
             </div>
         </div>
+    </div>
 
-        <div class="p-4 bg-white dark:bg-gray-900 rounded-md shadow">
-            <div class="text-xs text-gray-500 mb-2">Delay / Terlambat</div>
-            <div class="flex items-center gap-2">
-                <span
-                    class="px-2 py-1 rounded text-sm font-semibold {{ $totalDelay > 0 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' }}">
-                    {{ $totalDelay }} item
-                </span>
+    {{-- === LEGENDA INFORMATIF === --}}
+    <div
+        class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 mb-6 text-xs">
+        <h3
+            class="font-bold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wide border-b pb-2 dark:border-gray-700">
+            Panduan Indikator Usia & Hasil</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+                <div class="flex items-start gap-2">
+                    <span
+                        class="px-2 py-0.5 rounded bg-blue-600 text-white font-bold w-24 text-center text-[10px] shrink-0">Di
+                        Garis Usia</span>
+                    <span class="text-gray-600 dark:text-gray-400">Usia anak <b>tepat sama</b> dengan batas awal (25%).
+                        Waktunya mulai belajar.</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span
+                        class="px-2 py-0.5 rounded bg-blue-100 text-blue-700 border border-blue-200 w-24 text-center text-[10px] shrink-0">Rentang
+                        Usia</span>
+                    <span class="text-gray-600 dark:text-gray-400">Usia anak di antara <b>25% - 75%</b>. Fase normal
+                        perkembangan kemampuan.</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span
+                        class="px-2 py-0.5 rounded bg-orange-100 text-orange-800 border border-orange-300 font-bold w-24 text-center text-[10px] shrink-0">Zona
+                        Kritis</span>
+                    <span class="text-gray-600 dark:text-gray-400">Usia <b>75% - 100%</b>. Seharusnya sudah bisa. Jika
+                        Gagal, dianggap <b>Keterlambatan (Delay)</b>.</span>
+                </div>
             </div>
-            <div class="mt-2 text-[11px] text-gray-500">
-                <div class="flex flex-wrap gap-2">
-                    <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-700">Di Garis Usia</span>
-                    <span class="px-2 py-0.5 rounded bg-yellow-100 text-yellow-700">Rentang Usia</span>
-                    <span class="px-2 py-0.5 rounded bg-red-100 text-red-700">Lewat Usia</span>
-                    <span class="px-2 py-0.5 rounded bg-gray-200 text-gray-700">Belum Waktunya</span>
-                    <span class="px-2 py-0.5 rounded bg-green-100 text-green-700">Lewat Usia (Lulus)</span>
-                    <p class="text-gray-500">
-                        Catatan: Jika <b>Lewat Usia</b> namun hasil <b>LULUS</b>, dianggap <b>sesuai/normal</b> —
-                        akan ditampilkan sebagai <b>Lewat Usia (Lulus)</b> berwarna hijau.
-                    </p>
+            <div class="space-y-2">
+                <div class="flex items-start gap-2">
+                    <span
+                        class="px-2 py-0.5 rounded bg-red-100 text-red-700 border border-red-200 w-24 text-center text-[10px] shrink-0">Lewat
+                        Usia</span>
+                    <span class="text-gray-600 dark:text-gray-400">Usia <b>> 100%</b>. Sudah melewati batas maksimal.
+                        Terlambat jika belum bisa.</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span
+                        class="px-2 py-0.5 rounded bg-green-100 text-green-700 border border-green-200 w-24 text-center text-[10px] shrink-0">Lewat
+                        (Lulus)</span>
+                    <span class="text-gray-600 dark:text-gray-400">Usia lewat, tapi anak <b>Lulus (P)</b>. Perkembangan
+                        normal/sesuai.</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span
+                        class="px-2 py-0.5 rounded bg-gray-100 text-gray-500 border border-gray-200 w-24 text-center text-[10px] shrink-0">Belum
+                        Waktunya</span>
+                    <span class="text-gray-600 dark:text-gray-400">Usia anak masih di bawah batas awal (25%). Tidak
+                        wajib bisa.</span>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Catatan Utama --}}
+    {{-- === CATATAN UTAMA === --}}
     @if (filled($assessment->notes))
-        <div class="p-5 bg-white dark:bg-gray-900 rounded-md shadow mb-6">
-            <div class="flex items-center justify-between mb-2">
-                <h2 class="font-semibold">Catatan Utama</h2>
-                <span class="text-xs text-gray-500">{{ $dateID }}</span>
-            </div>
-            <div class="prose dark:prose-invert max-w-none text-sm">
-                {!! nl2br(e($assessment->notes)) !!}
+        <div
+            class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+            <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-gray-500">description</span>
+                Catatan Utama
+            </h3>
+            <div
+                class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line border border-gray-200 dark:border-gray-700">
+                {{ $assessment->notes }}
             </div>
         </div>
     @endif
 
-    {{-- Ringkasan per Sektor (Kategori) --}}
-    <div class="p-5 bg-white dark:bg-gray-900 rounded-md shadow mb-6">
-        <div class="flex items-center justify-between mb-3">
-            <h2 class="font-semibold">Ringkasan per Sektor</h2>
-            <span class="text-xs text-gray-500">Rekap per kategori parameter</span>
+    {{-- === TABEL RINGKASAN PER SEKTOR === --}}
+    <div
+        class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6 overflow-hidden">
+        <div class="px-6 py-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="font-semibold text-gray-800 dark:text-gray-100 text-sm uppercase">Ringkasan per Sektor</h3>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full table-auto text-sm">
-                <thead class="bg-gray-50 dark:bg-gray-800/80 text-gray-600 dark:text-gray-400">
+                <thead
+                    class="bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 uppercase text-[10px] tracking-wider font-semibold">
                     <tr>
-                        <th class="py-2 px-3 text-left">Sektor</th>
-                        <th class="py-2 px-3 text-center">Total</th>
-                        <th class="py-2 px-3 text-center">P</th>
-                        <th class="py-2 px-3 text-center">F</th>
-                        <th class="py-2 px-3 text-center">R</th>
-                        <th class="py-2 px-3 text-center">OP</th>
-                        <th class="py-2 px-3 text-center">NR</th>
-                        <th class="py-2 px-3 text-center">Delay</th>
-                        <th class="py-2 px-3 text-center">Persen Lulus</th>
+                        <th class="py-3 px-4 text-left">Sektor</th>
+                        <th class="py-3 px-4 text-center">Total Item</th>
+                        <th class="py-3 px-4 text-center text-green-600">P</th>
+                        <th class="py-3 px-4 text-center text-red-600">F</th>
+                        <th class="py-3 px-4 text-center text-yellow-600">R</th>
+                        <th class="py-3 px-4 text-center text-gray-500">OP</th>
+                        <th class="py-3 px-4 text-center font-bold text-red-700">Delay</th>
+                        <th class="py-3 px-4 text-center">Persentase Lulus</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                     @forelse($sectorSummary as $catName => $s)
-                        <tr class="border-t border-gray-200 dark:border-gray-700">
-                            <td class="py-2 px-3">{{ $catName }}</td>
-                            <td class="py-2 px-3 text-center">{{ $s['total'] }}</td>
-                            <td class="py-2 px-3 text-center">
-                                <span
-                                    class="px-2 py-0.5 rounded bg-green-100 text-green-700">{{ $s['P'] }}</span>
+                        <tr class="hover-row hover:bg-gray-50 dark:hover:bg-gray-800">
+                            <td class="py-3 px-4 font-medium">{{ $catName }}</td>
+                            <td class="py-3 px-4 text-center">{{ $s['total'] }}</td>
+                            <td class="py-3 px-4 text-center"><span
+                                    class="px-2 py-0.5 rounded bg-green-100 text-green-700 font-bold border border-green-200">{{ $s['P'] }}</span>
                             </td>
-                            <td class="py-2 px-3 text-center">
-                                <span class="px-2 py-0.5 rounded bg-red-100 text-red-700">{{ $s['F'] }}</span>
+                            <td class="py-3 px-4 text-center"><span
+                                    class="px-2 py-0.5 rounded bg-red-100 text-red-700 font-bold border border-red-200">{{ $s['F'] }}</span>
                             </td>
-                            <td class="py-2 px-3 text-center">
-                                <span
-                                    class="px-2 py-0.5 rounded bg-yellow-100 text-yellow-700">{{ $s['R'] }}</span>
+                            <td class="py-3 px-4 text-center"><span
+                                    class="px-2 py-0.5 rounded bg-yellow-100 text-yellow-700 font-bold border border-yellow-200">{{ $s['R'] }}</span>
                             </td>
-                            <td class="py-2 px-3 text-center">
-                                <span class="px-2 py-0.5 rounded bg-gray-200 text-gray-700">{{ $s['OP'] }}</span>
+                            <td class="py-3 px-4 text-center"><span
+                                    class="px-2 py-0.5 rounded bg-gray-200 text-gray-700 font-bold border border-gray-300">{{ $s['OP'] }}</span>
                             </td>
-                            <td class="py-2 px-3 text-center">
-                                <span
-                                    class="px-2 py-0.5 rounded bg-purple-100 text-purple-700">{{ $s['NR'] }}</span>
+                            <td class="py-3 px-4 text-center"><span
+                                    class="px-2 py-0.5 rounded {{ $s['delay'] > 0 ? 'bg-red-100 text-red-700 font-bold border border-red-200' : 'bg-gray-50 text-gray-400' }}">{{ $s['delay'] }}</span>
                             </td>
-                            <td class="py-2 px-3 text-center">
-                                <span
-                                    class="px-2 py-0.5 rounded {{ $s['delay'] > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600' }}">
-                                    {{ $s['delay'] }}
-                                </span>
-                            </td>
-                            <td class="py-2 px-3 text-center">
-                                <span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700">
-                                    {{ $pct($s['P'], max($s['total'], 1)) }}
-                                </span>
+                            <td class="py-3 px-4 text-center"><span
+                                    class="text-blue-600 font-bold">{{ $pct($s['P'], max($s['total'], 1)) }}</span>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="py-4 px-3 text-center text-gray-500">
-                                Belum ada data sektor untuk penilaian ini.
+                            <td colspan="8" class="py-6 text-center text-gray-500 italic">Belum ada data sektor.
                             </td>
                         </tr>
                     @endforelse
@@ -288,102 +351,132 @@
         </div>
     </div>
 
-    {{-- Tabel Per Kategori (detail item) --}}
+    {{-- === DETAIL ITEM PER SEKTOR (ACCORDION) === --}}
     <div class="space-y-6">
         @foreach ($groupedParams as $categoryName => $params)
-            @php $slug = \Illuminate\Support\Str::slug($categoryName, '-'); @endphp
-            <div class="border dark:border-gray-700 rounded-md overflow-hidden">
-                <div class="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-800">
-                    <div class="font-medium">{{ $categoryName }}</div>
-                    <button type="button" class="text-xs flex items-center gap-1"
-                        onclick="toggleCat('{{ $slug }}')">
-                        <span class="material-symbols-outlined text-sm">unfold_more</span>
-                        <span>Tutup/Buka</span>
+            @php
+                $slug = \Illuminate\Support\Str::slug($categoryName, '-');
+                // Cek apakah ada delay di sektor ini untuk ditampilkan di header
+                $delayInCat = $sectorSummary[$categoryName]['delay'] ?? 0;
+            @endphp
+
+            <div
+                class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                {{-- Header Sektor --}}
+                <div class="flex items-center justify-between px-6 py-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 transition"
+                    onclick="toggleCat('{{ $slug }}')">
+                    <div class="flex items-center gap-3">
+                        <h3
+                            class="font-bold text-gray-800 dark:text-gray-100 uppercase text-sm tracking-wide border-l-4 border-blue-500 pl-3">
+                            {{ $categoryName }}
+                        </h3>
+                        @if ($delayInCat > 0)
+                            <span
+                                class="px-2 py-0.5 rounded bg-red-100 text-red-700 text-[10px] font-bold border border-red-200 animate-soft-pulse">
+                                DELAY: {{ $delayInCat }}
+                            </span>
+                        @endif
+                    </div>
+                    <button type="button" class="text-gray-500 hover:text-blue-600 transition">
+                        <span class="material-symbols-outlined transform transition-transform"
+                            id="icon-{{ $slug }}">expand_more</span>
                     </button>
                 </div>
 
-                <div id="cat-{{ $slug }}" class="overflow-x-auto bg-white">
-                    <table class="min-w-full text-sm">
-                        <thead class="bg-white dark:bg-gray-800/80 text-gray-600 dark:text-gray-400">
+                {{-- Tabel Item --}}
+                <div id="cat-{{ $slug }}" class="overflow-x-auto transition-all duration-300">
+                    <table class="min-w-full text-sm divide-y divide-gray-100 dark:divide-gray-700">
+                        <thead
+                            class="bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 uppercase text-[10px] tracking-wider font-semibold">
                             <tr>
-                                <th class="py-2 px-3 text-left w-52">Nama Unsur</th>
-                                <th class="py-2 px-3 text-left hidden md:table-cell">Deskripsi</th>
-                                <th class="py-2 px-3 text-left">Usia (25/50/75/100)</th>
-                                <th class="py-2 px-3 text-center">Hasil</th>
-                                <th class="py-2 px-3 text-center">Delay?</th>
-                                <th class="py-2 px-3 text-left">Catatan</th>
-                                <th class="py-2 px-3 text-left">Tanda</th>
+                                <th class="py-3 px-4 text-left w-64">Item Tes</th>
+                                <th class="py-3 px-4 text-left hidden md:table-cell">Deskripsi</th>
+                                <th class="py-3 px-4 text-left w-48">Rentang Usia (25-50-75-100%)</th>
+                                <th class="py-3 px-4 text-center w-24">Hasil</th>
+                                <th class="py-3 px-4 text-left w-48">Indikator Usia</th>
+                                <th class="py-3 px-4 text-left w-64">Catatan</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @php
-                                // Filter hanya item yang diuji dalam kategori ini
-                                $testedCountInCat = 0;
-                            @endphp
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                            @php $hasData = false; @endphp
                             @foreach ($params as $p)
                                 @php
-                                    $tested = $testedMap[$p->id]['tested'] ?? false;
-                                    if ($tested) {
-                                        $testedCountInCat++;
+                                    $item = $assessment->items->firstWhere('mmdst_parameter_id', $p->id);
+                                    if (!$item || !$item->result_code) {
+                                        continue;
                                     }
-                                    $code = $testedMap[$p->id]['result_code'] ?? null;
+
+                                    $hasData = true;
+                                    $code = $item->result_code;
                                     $passed = $code === 'P';
-                                    $note = $assessment->items->firstWhere('mmdst_parameter_id', $p->id)?->note ?? '';
-                                    $isDelay =
-                                        (bool) ($assessment->items->firstWhere('mmdst_parameter_id', $p->id)
-                                            ?->is_delay ?? false);
+                                    $isDelay = $item->is_delay;
+                                    $note = $item->note;
 
-                                    $bucket = $bucketMap[$p->id] ?? 'NOT_YET';
-                                    $bClass = bucketClass($bucket, $passed);
-                                    $bText = bucketText($bucket, $passed);
-
-                                    $rText = resultText($code);
                                     $rClass = resultClass($code);
+                                    $rText = resultText($code);
+                                    $bucketInfo = getBucketInfo(
+                                        $ageInDays,
+                                        $p->percent_25,
+                                        $p->percent_75,
+                                        $p->percent_100,
+                                        $passed,
+                                    );
+                                    $bClass = $bucketInfo['cls'];
+                                    $bLabel = $bucketInfo['label'];
                                 @endphp
-                                @if ($tested)
-                                    <tr class="border-t border-gray-200 dark:border-gray-700">
-                                        <td class="py-2 px-3 align-top font-medium">
-                                            {{ $p->test_element_name }}
-                                            <div class="md:hidden text-[11px] text-gray-500">
-                                                {{ \Illuminate\Support\Str::limit($p->test_element_description ?? '-', 80) }}
+                                <tr class="hover-row hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                    <td class="py-3 px-4 align-top font-medium text-gray-900 dark:text-gray-100">
+                                        {{ $p->test_element_name }}
+                                        <div
+                                            class="md:hidden text-[10px] text-gray-500 mt-1 italic border-l-2 pl-2 border-gray-300">
+                                            {{ \Illuminate\Support\Str::limit($p->test_element_description, 50) }}
+                                        </div>
+                                    </td>
+                                    <td
+                                        class="py-3 px-4 align-top hidden md:table-cell text-xs text-gray-500 leading-relaxed">
+                                        {{ $p->test_element_description ?? '-' }}
+                                    </td>
+                                    <td class="py-3 px-4 align-top font-mono text-[10px] text-gray-500">
+                                        <div class="flex flex-col">
+                                            <span>25%: <b>{{ $p->percent_25 }}</b></span>
+                                            <span>50%: <b>{{ $p->percent_50 }}</b></span>
+                                            <span>75%: <b class="text-orange-600">{{ $p->percent_75 }}</b></span>
+                                            <span>100%: <b>{{ $p->percent_100 }}</b></span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 align-top text-center">
+                                        <span
+                                            class="inline-flex items-center justify-center px-2.5 py-0.5 rounded text-[10px] font-bold border shadow-sm {{ $rClass }}">
+                                            {{ $rText }}
+                                        </span>
+                                        @if ($isDelay)
+                                            <div
+                                                class="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-600 border border-red-200 animate-pulse">
+                                                <span class="material-symbols-outlined text-[10px]">
+                                                    warning
+                                                </span>
+                                                <span class="text-[10px] font-bold uppercase tracking-wider">
+                                                    Delay
+                                                </span>
                                             </div>
-                                        </td>
-                                        <td
-                                            class="py-2 px-3 align-top text-xs text-gray-600 dark:text-gray-300 hidden md:table-cell">
-                                            {{ $p->test_element_description ?? '-' }}
-                                        </td>
-                                        <td class="py-2 px-3 align-top text-xs text-gray-500">
-                                            {{ $p->percent_25 ?? '—' }}/{{ $p->percent_50 ?? '—' }}/{{ $p->percent_75 ?? '—' }}/{{ $p->percent_100 ?? '—' }}
-                                        </td>
-                                        <td class="py-2 px-3 align-top text-center">
-                                            <span
-                                                class="px-2 py-0.5 rounded {{ $rClass }}">{{ $rText }}</span>
-                                        </td>
-                                        <td class="py-2 px-3 align-top text-center">
-                                            @if ($isDelay)
-                                                <span
-                                                    class="px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs">Delay</span>
-                                            @else
-                                                <span
-                                                    class="px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-xs">—</span>
-                                            @endif
-                                        </td>
-                                        <td class="py-2 px-3 align-top">
-                                            {{ $note ?: '—' }}
-                                        </td>
-                                        <td class="py-2 px-3 align-top">
-                                            <span
-                                                class="px-2 py-0.5 rounded text-[11px] md:text-xs {{ $bClass }}">{{ $bText }}</span>
-                                        </td>
-                                    </tr>
-                                @endif
+                                        @endif
+                                    </td>
+                                    <td class="py-3 px-4 align-top">
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase font-bold border tracking-wide whitespace-normal text-center leading-tight {{ $bClass }}">
+                                            {{ $bLabel }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-4 align-top text-xs text-gray-600 italic">
+                                        {{ $note ?: '—' }}
+                                    </td>
+                                </tr>
                             @endforeach
 
-                            @if ($testedCountInCat === 0)
+                            @if (!$hasData)
                                 <tr>
-                                    <td colspan="7" class="py-4 px-3 text-center text-gray-500">
-                                        Tidak ada item yang diuji pada kategori ini.
-                                    </td>
+                                    <td colspan="6" class="py-8 text-center text-gray-400 italic">Tidak ada item
+                                        yang dinilai pada sektor ini.</td>
                                 </tr>
                             @endif
                         </tbody>
@@ -393,28 +486,35 @@
         @endforeach
     </div>
 
-    {{-- Form delete (hidden) --}}
+    {{-- Form Delete Hidden --}}
     <form id="form-delete" action="{{ route('mmdst-assessments.destroy', $assessment) }}" method="POST"
         class="hidden">
-        @csrf
-        @method('DELETE')
+        @csrf @method('DELETE')
     </form>
 
     <script>
         function toggleCat(id) {
             const el = document.getElementById('cat-' + id);
-            if (!el) return;
-            el.style.display = (el.style.display === 'none') ? '' : 'none';
+            const icon = document.getElementById('icon-' + id);
+            if (el) {
+                el.classList.toggle('hidden');
+                if (el.classList.contains('hidden')) {
+                    icon.style.transform = 'rotate(-90deg)';
+                } else {
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            }
         }
 
         function confirmDelete() {
             Swal.fire({
                 title: 'Hapus Penilaian?',
-                text: 'Tindakan ini tidak dapat dibatalkan.',
+                text: 'Data yang dihapus tidak dapat dikembalikan.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#dc2626',
-                confirmButtonText: 'Hapus',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Hapus',
                 cancelButtonText: 'Batal'
             }).then(res => {
                 if (res.isConfirmed) {
@@ -427,6 +527,5 @@
                 }
             });
         }
-        window.confirmDelete = confirmDelete;
     </script>
 </x-app-layout>

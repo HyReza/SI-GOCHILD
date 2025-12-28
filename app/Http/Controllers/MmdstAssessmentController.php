@@ -103,7 +103,7 @@ class MmdstAssessmentController extends Controller
             if ($last) {
                 $previousMap = $last->items->mapWithKeys(fn($it) => [
                     $it->mmdst_parameter_id => [
-                        'result_code' => $it->result_code, // termasuk NR jika pernah dipakai
+                        'result_code' => $it->result_code,
                         'note'        => (string) $it->note,
                         'date'        => optional($last->assessment_date)->toDateString(),
                     ]
@@ -111,7 +111,7 @@ class MmdstAssessmentController extends Controller
             }
         }
 
-        // kirim ke view (nanti kamu minta view terpisah)
+        // kirim ke view
         return view('admin.mmdst-assessment.mmdst-assessment-create.index', [
             'students'            => $students,
             'parameters'          => $parameters, // kalau mau referensi mentah
@@ -133,7 +133,8 @@ class MmdstAssessmentController extends Controller
             'notes'           => ['nullable', 'string'],
             'items'           => ['required', 'array', 'min:1'],
             'items.*.parameter_id' => ['required', 'exists:mmdst_parameters,id'],
-            'items.*.result_code'  => ['required', 'in:P,F,R,OP,NR'],
+            // HAPUS NR: Validasi hanya P, F, R, OP
+            'items.*.result_code'  => ['required', 'in:P,F,R,OP'],
             'items.*.note'         => ['nullable', 'string'],
         ]);
 
@@ -160,8 +161,15 @@ class MmdstAssessmentController extends Controller
                 $param = $paramMap[$row['parameter_id']] ?? null;
                 if (!$param) continue;
 
-                $isAgeLine = $ageInDays >= (int) ($param->percent_25 ?? 0);
-                $isDelay   = $row['result_code'] === 'F' && $ageInDays >= (int) ($param->percent_100 ?? PHP_INT_MAX);
+                // Logika Garis Usia: P25 <= Usia <= P100
+                $p25  = (int) ($param->percent_25 ?? 0);
+                $p100 = (int) ($param->percent_100 ?? PHP_INT_MAX);
+                $isAgeLine = $ageInDays >= $p25 && $ageInDays <= $p100;
+
+                // Logika DELAY (GAGAL) KRITIS: Result 'F' && Usia >= P75
+                // Sesuai Dokumen MMDST Revisi: "Gagal (F) pada usia > 75"
+                $p75 = (int) ($param->percent_75 ?? 0);
+                $isDelay = ($row['result_code'] === 'F') && ($ageInDays >= $p75);
 
                 MmdstAssessmentItem::create([
                     'assessment_id'           => $assessment->id,
@@ -174,11 +182,10 @@ class MmdstAssessmentController extends Controller
                 ]);
             }
 
-            // hitung ringkasan
+            // hitung ringkasan via service
             $this->scoring->recalc($assessment);
         });
 
-        // 👉 balik ke riwayat siswa (aman, tidak butuh $student di view index umum)
         return redirect()
             ->route('mmdst.history', $student)
             ->with('success', 'Penilaian MMDST berhasil disimpan.');
@@ -289,7 +296,8 @@ class MmdstAssessmentController extends Controller
             'notes'           => ['nullable', 'string'],
             'items'           => ['required', 'array', 'min:1'],
             'items.*.parameter_id' => ['required', 'exists:mmdst_parameters,id'],
-            'items.*.result_code'  => ['required', 'in:P,F,R,OP,NR'], // <-- tambahkan NR
+            // HAPUS NR: Validasi hanya P, F, R, OP
+            'items.*.result_code'  => ['required', 'in:P,F,R,OP'],
             'items.*.note'         => ['nullable', 'string'],
         ]);
 
@@ -317,8 +325,15 @@ class MmdstAssessmentController extends Controller
 
             foreach ($validated['items'] as $row) {
                 $param = $paramMap[$row['parameter_id']];
-                $isAgeLine = $ageInDays >= (int) ($param->percent_25 ?? 0);
-                $isDelay   = $row['result_code'] === 'F' && $ageInDays >= (int) ($param->percent_100 ?? PHP_INT_MAX);
+
+                // Logika Garis Usia: P25 <= Usia <= P100
+                $p25  = (int) ($param->percent_25 ?? 0);
+                $p100 = (int) ($param->percent_100 ?? PHP_INT_MAX);
+                $isAgeLine = $ageInDays >= $p25 && $ageInDays <= $p100;
+
+                // Logika DELAY (GAGAL) KRITIS: Result 'F' && Usia >= P75
+                $p75 = (int) ($param->percent_75 ?? 0);
+                $isDelay = ($row['result_code'] === 'F') && ($ageInDays >= $p75);
 
                 MmdstAssessmentItem::create([
                     'assessment_id'           => $mmdst_assessment->id,
@@ -456,10 +471,10 @@ class MmdstAssessmentController extends Controller
     /**
      * Filter & group parameter per kategori.
      * - Jika $studentIsNormal = true:
-     *    inRange: p25 <= age <= p100
-     *    below  : p100 < age → ambil 2 paling dekat (p100 desc)
-     *    above  : p25  > age → ambil 2 paling dekat (p25  asc)
-     *    merged : below + inRange + above (unique id)
+     * inRange: p25 <= age <= p100
+     * below  : p100 < age → ambil 2 paling dekat (p100 desc)
+     * above  : p25  > age → ambil 2 paling dekat (p25  asc)
+     * merged : below + inRange + above (unique id)
      * - Jika false: tampilkan semua by kategori (urut).
      */
     private function filterAndGroupParameters($parameters, int $ageInDays, bool $studentIsNormal)
@@ -505,9 +520,9 @@ class MmdstAssessmentController extends Controller
                     ->values();
             }
 
-            // Tambahkan list result codes utk view
+            // HAPUS NR DARI DAFTAR OPSI
             $picked->transform(function ($p) {
-                $p->result_codes = ['P', 'F', 'R', 'OP', 'NR'];
+                $p->result_codes = ['P', 'F', 'R', 'OP'];
                 return $p;
             });
 
@@ -518,10 +533,11 @@ class MmdstAssessmentController extends Controller
     }
 
     /**
-     * Klasifikasi bucket usia:
+     * Klasifikasi bucket usia untuk frontend (termasuk CRITICAL_75_100):
      * - OVERDUE   : age >= p100
-     * - AT_LINE   : age == salah satu p25/p50/p75/p100
-     * - IN_WINDOW : p25 <= age < p100 (bukan AT_LINE)
+     * - CRITICAL_75_100: age >= p75 dan < p100
+     * - AT_LINE   : age == p25/p50/p75/p100
+     * - IN_WINDOW : p25 <= age < p75
      * - NOT_YET   : age < p25
      */
     private function classifyAgeBucket(int $age, ?int $p25, ?int $p50, ?int $p75, ?int $p100): string
@@ -534,10 +550,13 @@ class MmdstAssessmentController extends Controller
         if ($age >= $p100) {
             return 'OVERDUE';
         }
+        if ($age >= $p75 && $age < $p100) {
+            return 'CRITICAL_75_100'; // Zona Kritis Revisi
+        }
         if ($age === $p25 || $age === $p50 || $age === $p75 || $age === $p100) {
             return 'AT_LINE';
         }
-        if ($age >= $p25 && $age < $p100) {
+        if ($age >= $p25 && $age < $p75) {
             return 'IN_WINDOW';
         }
         return 'NOT_YET';
