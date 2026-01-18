@@ -46,7 +46,7 @@
                             </th>
                             <th class="px-6 py-5 text-center border-l border-gray-100 dark:border-gray-700">L. Lengan
                             </th>
-                            <th class="px-6 py-5 border-l border-gray-100 dark:border-gray-700">Status Gizi</th>
+                            <th class="px-6 py-5 border-l border-gray-100 dark:border-gray-700">Pengukuran</th>
                             <th class="px-6 py-5 text-center">Aksi</th>
                         </tr>
                     </thead>

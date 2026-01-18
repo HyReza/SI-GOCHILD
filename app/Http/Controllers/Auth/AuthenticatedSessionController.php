@@ -13,10 +13,10 @@ class AuthenticatedSessionController extends Controller
 {
     public function create(): View
     {
-        $seo_description = "Masuk ke akun Anda di Al Jannah Preschool and Day Care untuk mengakses berbagai layanan dan informasi penting tentang kegiatan daycare kami.";
-        $seo_meta_title = "Login - Al Jannah Preschool and Day Care";
-        $seo_title = "Login - Al Jannah Preschool and Day Care";
-        $seo_key = 'login daycare, login Al Jannah, akses akun daycare, preschool login, daycare services login, al jannah login, login al jannah, login daycare al jannah, login daycare kedungwuni, pendaftaran al jannah, pendaftaran daycare, pendaftaran daycare kedungwuni, pendaftaran daycare al jannah';
+        $seo_description = "Masuk ke akun Anda di Si-GOchild untuk mengakses berbagai layanan dan informasi penting tentang website kami.";
+        $seo_meta_title = "Login - Si-Gochild";
+        $seo_title = "Login - Si-Gochild";
+        $seo_key = 'login si-gochild, login Al Jannah, akses akun si-gochild, preschool login, si-gochild services login, al jannah login, login al jannah, login si-gochild al jannah, login si-gochild kedungwuni, pendaftaran al jannah, pendaftaran si-gochild, pendaftaran si-gochild kedungwuni, pendaftaran si-gochild al jannah';
 
         return view('auth.login', compact('seo_description', 'seo_meta_title', 'seo_title', 'seo_key'));
     }
