@@ -267,8 +267,8 @@
 
         <br><br><br>
         <div style="font-size: 22pt;" class="bold">LAPORAN</div>
-        <div style="font-size: 18pt;" class="bold">PENCAPAIAN PERKEMBANGAN ANAK</div>
-        <div style="font-size: 16pt;">(RAPORT PAUD)</div>
+        <div style="font-size: 18pt;" class="bold">PENCAPAIAN PERKEMBANGAN & PERTUMBUHAN</div>
+        <div style="font-size: 16pt;">(RAPORT SI-GOCHILD)</div>
         <br>
         <div class="italic" style="font-size: 12pt;">"Mewujudkan Generasi Sehat, Cerdas, dan Berakhlak Mulia"</div>
 
@@ -285,10 +285,9 @@
 
         <br><br><br><br>
 
-        <div style="font-size: 14pt;" class="bold">AL JANNAH PRESCHOOL AND DAY CARE</div>
+        <div style="font-size: 14pt;" class="bold">SI-GOCHILD DAYCARE & CHILDCARE</div>
         <div style="font-size: 10pt;">
-            Jl. Giok No.17-18 Perumahan Villa Pisma Asri, Desa Podo, Kec. Kedungwuni<br>
-            Kabupaten Pekalongan, Jawa Tengah
+            Sistem Informasi Tumbuh Kembang Anak & Daycare
         </div>
     </div>
 
@@ -336,10 +335,10 @@
                         <td>Kelompok / Layanan</td>
                         <td>:</td>
                         <td class="bold">
-                            {{-- Ambil dari relasi --}}
-                            {{ $s->activityTransaction->program->program_name ?? 'Daycare / PAUD' }}
-                            -
-                            {{ $s->activityTransaction->service->service_name ?? '' }}
+                            {{ $s->activityTransaction->program->program_name ?? 'Daycare / Childcare' }}
+                            @if(!empty($s->activityTransaction->service->service_name))
+                                - {{ $s->activityTransaction->service->service_name }}
+                            @endif
                         </td>
                     </tr>
                     <tr>
@@ -400,8 +399,8 @@
         <tr>
             <td width="55%"></td> {{-- Spacer Kiri --}}
             <td width="45%" class="text-center">
-                Pekalongan, {{ \Carbon\Carbon::parse($report->report_date)->translatedFormat('d F Y') }}<br>
-                Kepala PAUD Non Formal<br>Al Jannah Preschool and Day Care
+                {{ \Carbon\Carbon::parse($report->report_date)->translatedFormat('d F Y') }}<br>
+                Kepala / Pimpinan Daycare
                 <br><br><br>
                 @if ($report->principal_signature && file_exists(storage_path('app/public/' . $report->principal_signature)))
                     <img src="{{ storage_path('app/public/' . $report->principal_signature) }}" class="sig-img">
@@ -427,11 +426,10 @@
                     onerror="this.style.display='none'">
             </td>
             <td width="70%" align="center" style="vertical-align: middle;">
-                <div style="font-size: 12pt; font-weight: bold; letter-spacing: 1px;">YAYASAN AL JANNAH PEKALONGAN</div>
-                <div class="school-name">PAUD TERPADU DAYCARE AL-JANNAH</div>
+                <div style="font-size: 12pt; font-weight: bold; letter-spacing: 1px;">SI-GOCHILD</div>
+                <div class="school-name">DAYCARE & CHILD CARE</div>
                 <div class="school-address">
-                    Jl. Giok No.17-18 Perumahan Villa Pisma Asri, Desa Podo, Kec. Kedungwuni<br>
-                    Kabupaten Pekalongan - Jawa Tengah 51173 | Email: info@aljannah.sch.id
+                    Laporan Perkembangan dan Pertumbuhan Anak (Tumbuh Kembang & Kesehatan)
                 </div>
             </td>
             <td width="15%" align="center" style="vertical-align: middle;">
@@ -731,7 +729,7 @@
                 </td>
                 <td></td>
                 <td>
-                    Kepala PAUD Non Formal<br>Al Jannah Preschool and Day Care
+                    Kepala / Pimpinan Daycare
                     <br><br>
                     @if ($report->principal_signature && file_exists(storage_path('app/public/' . $report->principal_signature)))
                         <img src="{{ storage_path('app/public/' . $report->principal_signature) }}" class="sig-img">

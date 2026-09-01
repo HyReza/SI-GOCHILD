@@ -314,7 +314,7 @@
                     <br><br><br>
                 @endif
                 <br><span class="bold"
-                    style="text-decoration: underline;">{{ $report->principal_name ?? 'NURHIKMAH UMAMI, S.Pd.' }}</span>
+                    style="text-decoration: underline;">{{ $report->principal_name ?? 'Pimpinan Daycare' }}</span>
             </td>
         </tr>
     </table>
@@ -326,10 +326,9 @@
             <td width="15%" align="center"><img src="{{ public_path('images/logo2.png') }}"
                     style="height: 70px; width: auto;"></td>
             <td width="70%" align="center">
-                <div style="font-size: 12pt; font-weight: bold;">YAYASAN AL JANNAH PEKALONGAN</div>
-                <div class="school-name">AL JANNAH PRESCHOOL AND DAY CARE</div>
-                <div class="school-address">Jl. Giok No.17 Blok B.5 Perumahan Villa Pisma Asri, Desa Podo, Kec.
-                    Kedungwuni<br>Kabupaten Pekalongan - Jawa Tengah 51173<br>Email: info@aljannah.sch.id</div>
+                <div style="font-size: 12pt; font-weight: bold;">SI-GOCHILD</div>
+                <div class="school-name">DAYCARE & CHILD CARE</div>
+                <div class="school-address">Laporan Perkembangan Anak (SI-Gochild)</div>
             </td>
             <td width="15%" align="center"><img src="{{ public_path('images/barcode.png') }}"
                     style="height: 70px; width: auto;" onerror="this.style.display='none'"></td>
