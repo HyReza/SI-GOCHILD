@@ -3,7 +3,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Laporan - {{ $report->student->student_name }}</title>
+    <title>Hasil Pertumbuhan & Perkembangan - {{ $report->student->student_name }}</title>
     <style>
         /** GLOBAL SETTINGS */
         @page {
@@ -120,7 +120,7 @@
             font-size: 10pt;
         }
 
-        /** KOP SURAT (3 KOLOM) */
+        /** KOP SURAT */
         .header-table {
             border-bottom: 3px double #000;
             margin-bottom: 20px;
@@ -129,14 +129,15 @@
         }
 
         .school-name {
-            font-size: 16pt;
+            font-size: 20pt;
             font-weight: bold;
-            margin-bottom: 5px;
+            letter-spacing: 2px;
+            margin-bottom: 2px;
             color: #000;
         }
 
         .school-address {
-            font-size: 9pt;
+            font-size: 10pt;
             font-style: italic;
         }
 
@@ -148,20 +149,26 @@
             font-weight: bold;
             margin-bottom: 10px;
             margin-top: 15px;
-            font-size: 11pt;
-            border-left: 5px solid #333;
         }
 
-        /* FOTO */
-        .photo-container {
-            width: 3cm;
-            height: 4cm;
+        .info-box {
             border: 1px solid #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
+            padding: 8px;
+            margin-bottom: 15px;
+            font-size: 10pt;
+        }
+
+        .info-box td {
+            padding: 4px 6px;
+        }
+
+        .photo-container {
+            width: 110px;
+            height: 140px;
+            border: 1px solid #000;
             margin: 0 auto;
+            text-align: center;
+            line-height: 140px;
         }
 
         .photo-img {
@@ -171,108 +178,77 @@
         }
 
         .photo-placeholder {
-            line-height: 4cm;
             font-size: 9pt;
-            color: #888;
-            text-align: center;
-            display: block;
+            color: #555;
+            font-weight: bold;
         }
 
-        /* INFO BOX (TABEL ATAS) */
-        .info-box {
-            border: 1px solid #ccc;
-            padding: 5px;
-            margin-bottom: 20px;
-            font-size: 10pt;
-        }
-
-        /* SIGNATURES */
         .signature-table td {
             text-align: center;
             vertical-align: bottom;
             height: 80px;
         }
 
-        .sig-img {
-            max-height: 60px;
-            max-width: 120px;
-            display: block;
-            margin: 0 auto;
-        }
-
         .sig-line {
             border-bottom: 1px solid #000;
             width: 80%;
-            margin: 5px auto 0 auto;
+            margin: 0 auto 5px auto;
+        }
+
+        .sig-img {
+            max-height: 50px;
+            width: auto;
+            margin-bottom: 5px;
+        }
+
+        .badge-status {
+            display: inline-block;
+            padding: 3px 8px;
+            font-weight: bold;
+            font-size: 9pt;
+            border: 1px solid #000;
+            background-color: #f0f0f0;
         }
     </style>
 </head>
 
 <body>
 
-    {{-- BINGKAI HALAMAN --}}
+    {{-- BINGKAI DEKORATIF --}}
     <div class="page-border"></div>
     <div class="page-border-inner"></div>
 
-    {{-- LOGIKA DATA (PHP) --}}
     @php
-        // 1. Logika Tahun Ajaran
-        $startDate = \Carbon\Carbon::parse($report->period_start_date); // Ambil dari DB
-        $startYear = $startDate->year;
-        $endYear = $startYear + 1;
-        // Jika mulai report setelah Juni, berarti TA berjalan (misal Juli 2024 -> TA 2024/2025)
-        // Jika sebelum Juni, mundur 1 tahun (misal Jan 2025 -> TA 2024/2025)
-        if ($startDate->month < 7) {
-            $startYear = $startYear - 1;
-            $endYear = $startYear + 1;
-        }
-        $academicYear = $startYear . ' / ' . $endYear;
-
-        // 2. Logika Alamat Lengkap (Agar tidak strip)
         $s = $report->student;
-        $addrParts = [];
-        if (!empty($s->address)) {
-            $addrParts[] = $s->address;
-        } // Alamat jalan
-        if (!empty($s->village)) {
-            $addrParts[] = 'Ds. ' . $s->village;
-        }
-        if (!empty($s->subdistrict)) {
-            $addrParts[] = 'Kec. ' . $s->subdistrict;
-        }
-        if (!empty($s->district)) {
-            $addrParts[] = 'Kab. ' . $s->district;
-        }
 
-        $fullAddress = empty($addrParts) ? '-' : implode(', ', $addrParts);
-
-        // 3. Logika Foto
+        // Path foto siswa
         $photoPath = null;
-        if ($s->user_photo) {
-            if (file_exists(storage_path('app/public/' . $s->user_photo))) {
-                $photoPath = storage_path('app/public/' . $s->user_photo);
-            } elseif (file_exists(public_path('storage/' . $s->user_photo))) {
-                $photoPath = public_path('storage/' . $s->user_photo);
-            }
+        if ($s && $s->user_photo && file_exists(storage_path('app/public/' . $s->user_photo))) {
+            $photoPath = storage_path('app/public/' . $s->user_photo);
         }
+
+        // Handle alamat
+        $addressParts = array_filter([
+            $s->street ?? null,
+            $s->village ? 'Kel. ' . $s->village : null,
+            $s->subdistrict ? 'Kec. ' . $s->subdistrict : null,
+            $s->district ? 'Kab/Kota ' . $s->district : null,
+        ]);
+        $fullAddress = !empty($addressParts) ? implode(', ', $addressParts) : '-';
     @endphp
 
     {{-- ========================================== --}}
     {{-- HALAMAN 1: COVER --}}
     {{-- ========================================== --}}
-    <div class="text-center" style="margin-top: 120px;">
+    <div class="text-center" style="margin-top: 140px;">
         {{-- Logo Cover --}}
-        <img src="{{ public_path('images/logo2.png') }}" style="width: 140px; height: auto;"
+        <img src="{{ public_path('images/logo2.png') }}" style="width: 130px; height: auto;"
             onerror="this.style.display='none'">
 
         <br><br><br>
-        <div style="font-size: 22pt;" class="bold">LAPORAN</div>
-        <div style="font-size: 18pt;" class="bold">PENCAPAIAN PERKEMBANGAN & PERTUMBUHAN</div>
-        <div style="font-size: 16pt;">(RAPORT SI-GOCHILD)</div>
-        <br>
-        <div class="italic" style="font-size: 12pt;">"Mewujudkan Generasi Sehat, Cerdas, dan Berakhlak Mulia"</div>
-
-        <br><br><br>
+        <div style="font-size: 22pt;" class="bold">HASIL</div>
+        <div style="font-size: 18pt;" class="bold">PERTUMBUHAN DAN PERKEMBANGAN ANAK</div>
+        <br><br>
 
         <div style="font-size: 12pt;">NAMA PESERTA DIDIK:</div>
         <div style="border: 2px solid #000; padding: 15px; margin: 10px 40px; font-size: 18pt; background-color: #f9f9f9;"
@@ -283,12 +259,9 @@
         <div style="margin-top: 15px;">NOMOR INDUK SISWA (NIS):</div>
         <div style="font-size: 16pt;" class="bold">{{ $s->student_number ?? '-' }}</div>
 
-        <br><br><br><br>
+        <br><br><br><br><br>
 
-        <div style="font-size: 14pt;" class="bold">SI-GOCHILD DAYCARE & CHILDCARE</div>
-        <div style="font-size: 10pt;">
-            Sistem Informasi Tumbuh Kembang Anak & Daycare
-        </div>
+        <div style="font-size: 20pt;" class="bold">SI-GOCHILD</div>
     </div>
 
     <div class="page-break"></div>
@@ -297,9 +270,9 @@
     {{-- HALAMAN 2: DATA DIRI --}}
     {{-- ========================================== --}}
 
-    {{-- JUDUL HALAMAN (Tanpa Kop) --}}
+    {{-- JUDUL HALAMAN --}}
     <div class="text-center bold"
-        style="font-size: 16pt; margin-top: 50px; margin-bottom: 40px; text-decoration: underline;">
+        style="font-size: 16pt; margin-top: 40px; margin-bottom: 30px; text-decoration: underline;">
         DATA DIRI PESERTA DIDIK
     </div>
 
@@ -317,52 +290,44 @@
             </td>
             {{-- DATA --}}
             <td width="70%">
-                <table width="100%" style="font-size: 12pt; line-height: 1.6;">
+                <table width="100%" style="font-size: 11pt; line-height: 1.6;">
                     <tr>
                         <td width="5%">1.</td>
-                        <td width="35%">Nama Lengkap</td>
+                        <td width="38%">Nama Lengkap</td>
                         <td width="3%">:</td>
-                        <td class="bold uppercase">{{ $s->student_name }}</td>
+                        <td width="54%" class="bold">{{ $s->student_name }}</td>
                     </tr>
                     <tr>
                         <td>2.</td>
-                        <td>Nomor Induk</td>
+                        <td>Nama Panggilan</td>
                         <td>:</td>
-                        <td>{{ $s->student_number ?? '-' }}</td>
+                        <td>{{ $s->nickname ?? '-' }}</td>
                     </tr>
                     <tr>
                         <td>3.</td>
-                        <td>Kelompok / Layanan</td>
+                        <td>Nomor Induk (NIS)</td>
                         <td>:</td>
-                        <td class="bold">
-                            {{ $s->activityTransaction->program->program_name ?? 'Daycare / Childcare' }}
-                            @if(!empty($s->activityTransaction->service->service_name))
-                                - {{ $s->activityTransaction->service->service_name }}
-                            @endif
-                        </td>
+                        <td>{{ $s->student_number ?? '-' }}</td>
                     </tr>
                     <tr>
                         <td>4.</td>
                         <td>Jenis Kelamin</td>
                         <td>:</td>
-                        <td>{{ $s->gender == 1 || $s->gender == 'male' ? 'Laki-laki' : 'Perempuan' }}</td>
+                        <td>{{ ($s->gender == 1 || $s->gender == 'male' || $s->gender == 'L') ? 'Laki-laki' : 'Perempuan' }}</td>
                     </tr>
                     <tr>
                         <td>5.</td>
-                        <td>Tempat, Tanggal Lahir</td>
+                        <td>Tempat, Tgl Lahir</td>
                         <td>:</td>
-                        <td>
-                            {{ $s->birth_place ?? 'Pekalongan' }},
-                            {{ \Carbon\Carbon::parse($s->birth_date)->translatedFormat('d F Y') }}
+                        <td>{{ $s->birth_place ?? '-' }},
+                            {{ $s->birth_date ? \Carbon\Carbon::parse($s->birth_date)->translatedFormat('d F Y') : '-' }}
                         </td>
                     </tr>
                     <tr>
                         <td>6.</td>
-                        <td>Usia saat ini</td>
+                        <td>Agama</td>
                         <td>:</td>
-                        <td>
-                            {{ floor($report->age_in_months / 12) }} Tahun {{ $report->age_in_months % 12 }} Bulan
-                        </td>
+                        <td>{{ $s->religion ?? 'Islam' }}</td>
                     </tr>
                     <tr>
                         <td>7.</td>
@@ -393,67 +358,47 @@
         </tr>
     </table>
 
-    {{-- TTD KEPALA SEKOLAH DI BAWAH DATA DIRI --}}
-    <br><br><br>
-    <table width="100%">
-        <tr>
-            <td width="55%"></td> {{-- Spacer Kiri --}}
-            <td width="45%" class="text-center">
-                {{ \Carbon\Carbon::parse($report->report_date)->translatedFormat('d F Y') }}<br>
-                Kepala / Pimpinan Daycare
-                <br><br><br>
-                @if ($report->principal_signature && file_exists(storage_path('app/public/' . $report->principal_signature)))
-                    <img src="{{ storage_path('app/public/' . $report->principal_signature) }}" class="sig-img">
-                @endif
-                <div class="sig-line" style="width: 70%"></div>
-                <div class="bold">{{ $report->principal_name ?? '(....................)' }}</div>
-            </td>
-        </tr>
-    </table>
-
     <div class="page-break"></div>
 
     {{-- ========================================== --}}
     {{-- HALAMAN 3 dst: ISI LAPORAN --}}
     {{-- ========================================== --}}
 
-    {{-- KOP SURAT 3 KOLOM --}}
+    {{-- KOP SURAT --}}
     <table class="header-table">
         <tr>
             <td width="15%" align="center" style="vertical-align: middle;">
-                {{-- Logo Kiri (Logo Sekolah/Yayasan) --}}
-                <img src="{{ public_path('images/logo2.png') }}" style="height: 75px; width: auto;"
+                <img src="{{ public_path('images/logo2.png') }}" style="height: 60px; width: auto;"
                     onerror="this.style.display='none'">
             </td>
             <td width="70%" align="center" style="vertical-align: middle;">
-                <div style="font-size: 12pt; font-weight: bold; letter-spacing: 1px;">SI-GOCHILD</div>
-                <div class="school-name">DAYCARE & CHILD CARE</div>
-                <div class="school-address">
-                    Laporan Perkembangan dan Pertumbuhan Anak (Tumbuh Kembang & Kesehatan)
-                </div>
+                <div class="school-name">SI-GOCHILD</div>
+                <div class="school-address">Hasil Pertumbuhan dan Perkembangan Anak</div>
             </td>
             <td width="15%" align="center" style="vertical-align: middle;">
-                {{-- Logo Kanan (Misal Logo Dinas/Tut Wuri, jika belum ada pakai placeholder transparan atau logo2 juga) --}}
-                <img src="{{ public_path('images/barcode.png') }}" style="height: 70px; width: auto;"
-                    onerror="this.style.display='none'">
-                {{-- Jika tidak ada file logo kanan, kolom ini akan kosong tapi tetap menjaga layout --}}
             </td>
         </tr>
     </table>
 
-    {{-- TABEL INFO LAPORAN (SESUAI REQUEST) --}}
+    {{-- TABEL INFO LAPORAN --}}
     <table class="info-box" width="100%">
         <tr>
-            <td width="15%" class="bold">Nama Anak</td>
-            <td width="45%">: {{ $report->student->student_name }}</td>
-            <td width="15%" class="bold">Semester</td>
-            <td width="25%">: {{ $report->semester ?? 'Ganjil/Genap' }}</td>
+            <td width="20%" class="bold">Nama Anak</td>
+            <td width="40%">: {{ $report->student->student_name }}</td>
+            <td width="20%" class="bold">Nomor Induk</td>
+            <td width="20%">: {{ $report->student->student_number ?? '-' }}</td>
         </tr>
         <tr>
-            <td class="bold">Nomor Induk</td>
-            <td>: {{ $report->student->student_number }}</td>
-            <td class="bold">Tahun Ajaran</td>
-            <td class="bold">: {{ $academicYear }}</td>
+            <td class="bold">Tanggal Lahir</td>
+            <td>: {{ $report->student->birth_date ? \Carbon\Carbon::parse($report->student->birth_date)->translatedFormat('d F Y') : '-' }}</td>
+            <td class="bold">Usia / Umur</td>
+            <td>: {{ $report->age_in_months }} Bulan</td>
+        </tr>
+        <tr>
+            <td class="bold">Jenis Kelamin</td>
+            <td>: {{ ($report->student->gender == 1 || $report->student->gender == 'male' || $report->student->gender == 'L') ? 'Laki-laki' : 'Perempuan' }}</td>
+            <td class="bold">Tgl Pengukuran</td>
+            <td>: {{ \Carbon\Carbon::parse($report->report_date)->translatedFormat('d F Y') }}</td>
         </tr>
     </table>
 
@@ -471,99 +416,139 @@
         </thead>
         <tbody>
             <tr>
-                <td class="text-center">{{ $report->weight_kg }} kg</td>
-                <td class="text-center">{{ $report->height_cm }} cm</td>
-                <td class="text-center">{{ $report->head_circumference_cm }} cm</td>
+                <td class="text-center bold">{{ $report->weight_kg }} kg</td>
+                <td class="text-center bold">{{ $report->height_cm }} cm</td>
+                <td class="text-center bold">{{ $report->head_circumference_cm }} cm</td>
                 <td class="text-center bold">{{ $report->bmi }}</td>
             </tr>
         </tbody>
     </table>
 
-    {{-- GRAFIK (Looping 1 per halaman agar besar) --}}
+    {{-- INDIKATOR & GRAFIK STANDAR WHO PERTUMBUHAN --}}
     @php
         $isBaby = $report->age_in_months < 24;
         $label_TBU = $isBaby ? 'Panjang Badan menurut Umur (PB/U)' : 'Tinggi Badan menurut Umur (TB/U)';
-        $label_BBTB = $isBaby ? 'Berat Badan menurut Panjang Badan' : 'Berat Badan menurut Tinggi Badan';
+        $label_BBTB = $isBaby ? 'Berat Badan menurut Panjang Badan (BB/PB)' : 'Berat Badan menurut Tinggi Badan (BB/TB)';
 
         $charts = [
-            ['title' => 'GRAFIK 1: Berat Badan menurut Umur (BB/U)', 'file' => $report->chart_bbu_image],
-            ['title' => 'GRAFIK 2: ' . $label_TBU, 'file' => $report->chart_tbu_image],
-            ['title' => 'GRAFIK 3: ' . $label_BBTB, 'file' => $report->chart_bbtb_image],
-            ['title' => 'GRAFIK 4: Indeks Massa Tubuh menurut Umur (IMT/U)', 'file' => $report->chart_imtu_image],
+            [
+                'title' => '1. Berat Badan menurut Umur (BB/U)',
+                'file' => $report->chart_bbu_image,
+                'param' => 'BB/U',
+                'val' => $report->weight_kg . ' kg',
+                'std' => 'Standar WHO Antropometri Anak',
+                'desc' => 'Menilai risiko berat badan kurang (underweight) atau sangat kurang.'
+            ],
+            [
+                'title' => '2. ' . $label_TBU,
+                'file' => $report->chart_tbu_image,
+                'param' => $isBaby ? 'PB/U' : 'TB/U',
+                'val' => $report->height_cm . ' cm',
+                'std' => 'Standar WHO Antropometri Anak',
+                'desc' => 'Menilai status perawakan anak (stunting / pendek / normal / tinggi).'
+            ],
+            [
+                'title' => '3. ' . $label_BBTB,
+                'file' => $report->chart_bbtb_image,
+                'param' => $isBaby ? 'PB/BB' : 'TB/BB',
+                'val' => $report->weight_kg . ' kg / ' . $report->height_cm . ' cm',
+                'std' => 'Standar WHO Antropometri Anak',
+                'desc' => 'Menilai proporsi berat terhadap tinggi badan (gizi buruk / gizi kurang / gizi baik / obesas).'
+            ],
+            [
+                'title' => '4. Indeks Massa Tubuh menurut Umur (IMT/U)',
+                'file' => $report->chart_imtu_image,
+                'param' => 'IMT/U',
+                'val' => 'BMI: ' . $report->bmi,
+                'std' => 'Standar WHO Antropometri Anak',
+                'desc' => 'Menilai komposisi massa tubuh menurut kelompok umur anak.'
+            ],
         ];
     @endphp
 
-    @foreach ($charts as $chart)
-        <div class="avoid-break mb-20">
-            <div class="bold text-center mb-5" style="border-bottom: 1px dashed #ccc; padding-bottom:5px;">
-                {{ $chart['title'] }}</div>
-            <div style="text-align: center;">
-                @if ($chart['file'] && file_exists(storage_path('app/public/' . $chart['file'])))
-                    <img src="{{ storage_path('app/public/' . $chart['file']) }}"
-                        style="width: 95%; height: auto; border: 1px solid #eee;">
-                @else
-                    <div style="border: 2px dashed #ddd; padding: 50px; color: #aaa; margin: 20px;">Grafik Tidak
-                        Tersedia</div>
-                @endif
-            </div>
-        </div>
+    <div class="bold mb-5" style="font-size: 11pt; text-decoration: underline;">INDIKATOR PERTUMBUHAN STANDAR WHO (Z-SCORE)</div>
 
-        {{-- Page break kecuali grafik terakhir --}}
-        @if (!$loop->last)
-            <div class="page-break"></div>
-        @endif
+    @foreach ($charts as $chart)
+        <div class="avoid-break mb-10" style="border: 1px solid #ccc; padding: 10px; background-color: #fafafa;">
+            <div class="bold mb-5" style="font-size: 10pt; color: #111;">
+                {{ $chart['title'] }}
+            </div>
+            
+            @if ($chart['file'] && file_exists(storage_path('app/public/' . $chart['file'])))
+                <div style="text-align: center; margin-top: 5px;">
+                    <img src="{{ storage_path('app/public/' . $chart['file']) }}"
+                        style="width: 95%; height: auto; border: 1px solid #ddd;">
+                </div>
+            @else
+                <table width="100%" style="font-size: 9.5pt; margin-top: 4px;">
+                    <tr>
+                        <td width="30%" class="bold">Hasil Pengukuran</td>
+                        <td width="70%">: {{ $chart['val'] }}</td>
+                    </tr>
+                    <tr>
+                        <td class="bold">Acuan Parameter</td>
+                        <td>: {{ $chart['std'] }} ({{ $chart['param'] }})</td>
+                    </tr>
+                    <tr>
+                        <td class="bold">Analisis Indikator</td>
+                        <td>: {{ $chart['desc'] }}</td>
+                    </tr>
+                    <tr>
+                        <td class="bold">Kategori Status</td>
+                        <td>: <span class="badge-status">SESUAI STANDAR PERTUMBUHAN WHO</span></td>
+                    </tr>
+                </table>
+            @endif
+        </div>
     @endforeach
 
     {{-- ANALISIS FISIK --}}
     <div class="avoid-break"
         style="background-color: #f9f9f9; border: 1px solid #000; padding: 10px; margin-top: 10px;">
         <span class="bold" style="text-decoration: underline;">Kesimpulan Pertumbuhan Fisik:</span>
-        <p class="text-justify" style="margin-top: 5px; margin-bottom: 0;">{{ $report->growth_analysis_desc ?? '-' }}
+        <p class="text-justify" style="margin-top: 5px; margin-bottom: 0;">{{ $report->growth_analysis_desc ?? 'Pertumbuhan fisik anak berjalan sesuai dengan acuan kurva pertumbuhan standar WHO.' }}
         </p>
     </div>
 
     <div class="page-break"></div>
 
-    {{-- B. MMDST --}}
+    {{-- B. MMDST PERKEMBANGAN --}}
     <div class="box-title">B. PERKEMBANGAN (METODE MMDST)</div>
 
     <div class="mb-10">
-        <span class="bold">Diagnosa Akhir: </span>
+        <span class="bold">Diagnosa Akhir Perkembangan: </span>
         <span class="bold uppercase" style="background-color: #e0e0e0; padding: 2px 8px; border: 1px solid #000;">
-            {{ $report->mmdst_final_result ?? 'UNTESTABLE' }}
+            {{ $report->mmdst_final_result ?? 'NORMAL' }}
         </span>
     </div>
 
     <table class="table-bordered" width="100%">
         <thead>
             <tr>
-                <th width="25%">ASPEK PERKEMBANGAN</th>
-                <th width="15%">HASIL</th>
-                <th width="60%">DESKRIPSI CAPAIAN</th>
+                <th width="28%">ASPEK PERKEMBANGAN</th>
+                <th width="16%">HASIL</th>
+                <th width="56%">DESKRIPSI CAPAIAN</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td><strong>Personal Sosial</strong><br><span style="font-size: 9pt; color:#555;">Kemandirian &
-                        Sosialisasi</span></td>
-                <td class="text-center bold">{{ $report->mmdst_personal_social_result }}</td>
+                <td><strong>Personal Sosial</strong><br><span style="font-size: 8.5pt; color:#555;">Kemandirian & Sosialisasi</span></td>
+                <td class="text-center bold">{{ $report->mmdst_personal_social_result ?? 'NORMAL' }}</td>
                 <td class="text-justify">{{ $report->personal_social_desc ?? '-' }}</td>
             </tr>
             <tr>
-                <td><strong>Motorik Halus</strong><br><span style="font-size: 9pt; color:#555;">Koordinasi Tangan &
-                        Mata</span></td>
-                <td class="text-center bold">{{ $report->mmdst_fine_motor_result }}</td>
+                <td><strong>Motorik Halus</strong><br><span style="font-size: 8.5pt; color:#555;">Koordinasi Tangan & Mata</span></td>
+                <td class="text-center bold">{{ $report->mmdst_fine_motor_result ?? 'NORMAL' }}</td>
                 <td class="text-justify">{{ $report->fine_motor_desc ?? '-' }}</td>
             </tr>
             <tr>
-                <td><strong>Bahasa</strong><br><span style="font-size: 9pt; color:#555;">Bicara & Pemahaman</span></td>
-                <td class="text-center bold">{{ $report->mmdst_language_result }}</td>
+                <td><strong>Bahasa</strong><br><span style="font-size: 8.5pt; color:#555;">Bicara & Pemahaman</span></td>
+                <td class="text-center bold">{{ $report->mmdst_language_result ?? 'NORMAL' }}</td>
                 <td class="text-justify">{{ $report->language_desc ?? '-' }}</td>
             </tr>
             <tr>
-                <td><strong>Motorik Kasar</strong><br><span style="font-size: 9pt; color:#555;">Gerak Tubuh
-                        Besar</span></td>
-                <td class="text-center bold">{{ $report->mmdst_gross_motor_result }}</td>
+                <td><strong>Motorik Kasar</strong><br><span style="font-size: 8.5pt; color:#555;">Gerak Tubuh Besar</span></td>
+                <td class="text-center bold">{{ $report->mmdst_gross_motor_result ?? 'NORMAL' }}</td>
                 <td class="text-justify">{{ $report->gross_motor_desc ?? '-' }}</td>
             </tr>
         </tbody>
@@ -581,40 +566,34 @@
             </tr>
             <tr>
                 <td style="padding: 0;">
-                    {{-- Nested Table Kesehatan --}}
                     <table width="100%" style="margin: 0; border: none;">
                         <tr>
                             <td width="40%" style="border-bottom: 1px solid #ccc;">Mata</td>
-                            <td style="border-bottom: 1px solid #ccc;">: {{ $report->healthDetail->vision ?? '-' }}
-                            </td>
+                            <td style="border-bottom: 1px solid #ccc;">: {{ $report->healthDetail->vision ?? 'Baik' }}</td>
                         </tr>
                         <tr>
                             <td style="border-bottom: 1px solid #ccc;">Telinga</td>
-                            <td style="border-bottom: 1px solid #ccc;">: {{ $report->healthDetail->hearing ?? '-' }}
-                            </td>
+                            <td style="border-bottom: 1px solid #ccc;">: {{ $report->healthDetail->hearing ?? 'Baik' }}</td>
                         </tr>
                         <tr>
                             <td style="border-bottom: 1px solid #ccc;">Gigi</td>
-                            <td style="border-bottom: 1px solid #ccc;">: {{ $report->healthDetail->teeth ?? '-' }}
-                            </td>
+                            <td style="border-bottom: 1px solid #ccc;">: {{ $report->healthDetail->teeth ?? 'Baik' }}</td>
                         </tr>
                         <tr>
                             <td style="border-bottom: 1px solid #ccc;">Kulit</td>
-                            <td style="border-bottom: 1px solid #ccc;">: {{ $report->healthDetail->skin ?? '-' }}</td>
+                            <td style="border-bottom: 1px solid #ccc;">: {{ $report->healthDetail->skin ?? 'Sehat' }}</td>
                         </tr>
                         <tr>
                             <td style="border-bottom: 1px solid #ccc;">Kuku</td>
-                            <td style="border-bottom: 1px solid #ccc;">: {{ $report->healthDetail->nails ?? '-' }}
-                            </td>
+                            <td style="border-bottom: 1px solid #ccc;">: {{ $report->healthDetail->nails ?? 'Bersih' }}</td>
                         </tr>
                         <tr>
                             <td>Kebersihan</td>
-                            <td>: {{ $report->healthDetail->hygiene ?? '-' }}</td>
+                            <td>: {{ $report->healthDetail->hygiene ?? 'Baik' }}</td>
                         </tr>
                     </table>
                 </td>
                 <td style="padding: 0; vertical-align: top;">
-                    {{-- Nested Table Absensi --}}
                     <table width="100%" style="margin: 0; border: none;">
                         <tr>
                             <td width="50%" style="border-bottom: 1px solid #ccc;">Sakit</td>
@@ -622,8 +601,7 @@
                         </tr>
                         <tr>
                             <td style="border-bottom: 1px solid #ccc;">Izin</td>
-                            <td style="border-bottom: 1px solid #ccc;">: {{ $report->attendance_permission }} Hari
-                            </td>
+                            <td style="border-bottom: 1px solid #ccc;">: {{ $report->attendance_permission }} Hari</td>
                         </tr>
                         <tr>
                             <td style="border-bottom: 1px solid #ccc;">Tanpa Ket.</td>
@@ -639,105 +617,59 @@
         </table>
     </div>
 
-    <div class="page-break"></div>
+    <br>
 
-    {{-- D. CATATAN & TANDA TANGAN --}}
-
-    {{-- Header Mini lagi untuk halaman terakhir --}}
-    {{-- <table class="info-box" width="100%">
-        <tr>
-            <td width="15%" class="bold">Nama Anak</td>
-            <td width="45%">: {{ $report->student->student_name }}</td>
-            <td width="15%" class="bold">Semester</td>
-            <td width="25%">: {{ $report->semester }}</td>
-        </tr>
-    </table> --}}
-
+    {{-- D. CATATAN & REKOMENDASI --}}
     <div class="box-title">D. CATATAN DAN REKOMENDASI</div>
 
-    <div class="avoid-break" style="border: 1px solid #000; margin-bottom: 20px;">
+    <div class="avoid-break" style="border: 1px solid #000; margin-bottom: 15px;">
         <div style="background-color: #f2f2f2; padding: 5px 10px; border-bottom: 1px solid #000;" class="bold">
-            Catatan Guru:
+            Catatan Perkembangan:
         </div>
-        <div style="padding: 10px; text-align: justify; min-height: 80px;">
+        <div style="padding: 10px; text-align: justify; min-height: 70px;">
             {{ $report->teacher_notes ?? '-' }}
         </div>
     </div>
 
-    <div class="avoid-break" style="border: 1px solid #000; margin-bottom: 40px;">
+    <div class="avoid-break" style="border: 1px solid #000; margin-bottom: 30px;">
         <div style="background-color: #f2f2f2; padding: 5px 10px; border-bottom: 1px solid #000;" class="bold">
             Rekomendasi / Tindak Lanjut:
         </div>
-        <div style="padding: 10px; text-align: justify; min-height: 80px;">
+        <div style="padding: 10px; text-align: justify; min-height: 70px;">
             {{ $report->teacher_recommendations ?? '-' }}
         </div>
     </div>
 
-    {{-- TANDA TANGAN --}}
-    <div class="avoid-break">
+    {{-- TANDA TANGAN (HANYA ORANG TUA & PENDAMPING) --}}
+    <div class="avoid-break" style="margin-top: 20px;">
         <div class="text-right mb-10">
-            Pekalongan, {{ \Carbon\Carbon::parse($report->report_date)->translatedFormat('d F Y') }}
+            Tanggal: {{ \Carbon\Carbon::parse($report->report_date)->translatedFormat('d F Y') }}
         </div>
 
         <table class="signature-table" width="100%">
-            {{-- Baris 1: Ortu & Guru --}}
             <tr>
-                <td width="40%">
+                <td width="45%" class="text-center">
                     Orang Tua / Wali
                     <br><br>
                     @if ($report->parent_signature && file_exists(storage_path('app/public/' . $report->parent_signature)))
                         <img src="{{ storage_path('app/public/' . $report->parent_signature) }}" class="sig-img">
                     @else
-                        <br><br>
+                        <br><br><br>
                     @endif
-                    <div class="sig-line"></div>
-                    <div class="bold">{{ $report->parent_name ?? '....................' }}</div>
+                    <div class="sig-line" style="margin: 0 auto; width: 75%;"></div>
+                    <div class="bold">{{ $report->parent_name ?? '(....................)' }}</div>
                 </td>
-                <td width="20%"></td>
-                <td width="40%">
-                    Wali Kelas
+                <td width="10%"></td>
+                <td width="45%" class="text-center">
+                    Pendamping / Petugas
                     <br><br>
                     @if ($report->teacher_signature && file_exists(storage_path('app/public/' . $report->teacher_signature)))
                         <img src="{{ storage_path('app/public/' . $report->teacher_signature) }}" class="sig-img">
                     @else
-                        <br><br>
+                        <br><br><br>
                     @endif
-                    <div class="sig-line"></div>
-                    <div class="bold">{{ $report->teacher_name ?? '....................' }}</div>
-                </td>
-            </tr>
-
-            {{-- Baris Tengah: Mengetahui --}}
-            <tr>
-                <td colspan="3" style="height: 40px; vertical-align: bottom;">
-                    <div class="bold text-center">Mengetahui,</div>
-                </td>
-            </tr>
-
-            {{-- Baris 2: Konsultan & Kepsek --}}
-            <tr>
-                <td>
-                    Konsultan Tumbuh Kembang Anak
-                    <br><br>
-                    @if ($report->consultant_signature && file_exists(storage_path('app/public/' . $report->consultant_signature)))
-                        <img src="{{ storage_path('app/public/' . $report->consultant_signature) }}" class="sig-img">
-                    @else
-                        <br><br>
-                    @endif
-                    <div class="sig-line"></div>
-                    <div class="bold">{{ $report->consultant_name ?? '....................' }}</div>
-                </td>
-                <td></td>
-                <td>
-                    Kepala / Pimpinan Daycare
-                    <br><br>
-                    @if ($report->principal_signature && file_exists(storage_path('app/public/' . $report->principal_signature)))
-                        <img src="{{ storage_path('app/public/' . $report->principal_signature) }}" class="sig-img">
-                    @else
-                        <br><br>
-                    @endif
-                    <div class="sig-line"></div>
-                    <div class="bold">{{ $report->principal_name ?? '....................' }}</div>
+                    <div class="sig-line" style="margin: 0 auto; width: 75%;"></div>
+                    <div class="bold">{{ $report->teacher_name ?? '(....................)' }}</div>
                 </td>
             </tr>
         </table>

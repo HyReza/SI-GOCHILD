@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot:title>Daftar Siswa - Raport Tumbuh Kembang</x-slot:title>
+    <x-slot:title>Daftar Siswa - Hasil Pertumbuhan & Perkembangan</x-slot:title>
 
     <div class="p-6">
 
@@ -8,10 +8,10 @@
             <div>
                 <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
                     <span class="material-symbols-outlined text-pink-500 text-3xl">child_care</span>
-                    Raport Tumbuh Kembang
+                    Hasil Pertumbuhan & Perkembangan
                 </h1>
                 <p class="text-sm text-gray-500 mt-1">
-                    Kelola data tumbuh kembang siswa, lihat riwayat, dan buat laporan baru.
+                    Kelola data tumbuh kembang siswa, lihat riwayat, dan cetak hasil pertumbuhan & perkembangan.
                 </p>
             </div>
         </div>
@@ -170,7 +170,14 @@
                                         <a href="{{ route('development-reports.select-period', $student->id) }}"
                                             class="w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg bg-pink-600 text-white text-xs font-bold hover:bg-pink-700 hover:shadow-md transition-all">
                                             <span class="material-symbols-outlined text-[16px]">add_circle</span>
-                                            Buat Raport
+                                            Input Data
+                                        </a>
+
+                                        {{-- Tombol Cetak PDF --}}
+                                        <a href="{{ route('development-reports.print-by-student', $student->id) }}" target="_blank"
+                                            class="w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-bold hover:bg-red-700 hover:shadow-md transition-all">
+                                            <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+                                            Cetak Hasil (PDF)
                                         </a>
 
                                         {{-- Tombol Riwayat --}}

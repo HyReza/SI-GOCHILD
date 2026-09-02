@@ -136,15 +136,20 @@
                                 <span class="material-symbols-outlined text-base">restart_alt</span> Reset
                             </a>
                         </div>
-                        <div class="md:col-span-1">
+                        <div class="md:col-span-1 flex flex-col gap-2">
                             <a href="{{ route('measurement.kmsChart', $activityTransaction) }}"
-                                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md shadow-sm flex items-center justify-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-md shadow-sm flex items-center justify-center gap-2 text-xs font-bold">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
                                     fill="currentColor">
                                     <path
                                         d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                                 </svg>
-                                Lihat Grafik KMS
+                                Grafik KMS
+                            </a>
+                            <a href="{{ route('development-reports.print-by-student', $activityTransaction->student_id) }}" target="_blank"
+                                class="w-full bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md shadow-sm flex items-center justify-center gap-2 text-xs font-bold">
+                                <span class="material-symbols-outlined text-sm">picture_as_pdf</span>
+                                Cetak PDF
                             </a>
                         </div>
                     </div>

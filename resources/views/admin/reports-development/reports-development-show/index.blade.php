@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot:title>Detail Raport: {{ $report->student->student_name }}</x-slot:title>
+    <x-slot:title>Detail Hasil Tumbuh Kembang: {{ $report->student->student_name }}</x-slot:title>
 
     {{-- HEADER UTAMA (NAVIGASI) --}}
 
@@ -16,8 +16,8 @@
                 <i class="fas fa-pencil-alt mr-2"></i> Edit Data
             </a>
             <a href="{{ route('development-reports.print', $report->id) }}" target="_blank"
-                class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-sm hover:bg-indigo-700 transition">
-                <i class="fas fa-print mr-2"></i> Cetak PDF
+                class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-lg font-bold text-xs text-white uppercase tracking-widest shadow-sm hover:bg-red-700 transition">
+                <i class="fas fa-file-pdf mr-2"></i> Cetak Hasil (PDF)
             </a>
         </div>
     </div>

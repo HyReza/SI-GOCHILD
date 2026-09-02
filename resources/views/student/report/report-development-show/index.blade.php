@@ -21,14 +21,12 @@
                     </a>
                 </div>
 
-                @if ($report->parent_signature)
-                    <div>
-                        <a href="{{ route('student.report.development.pdf', $report->id) }}" target="_blank"
-                            class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-sm hover:bg-red-700 transition">
-                            <i class="fas fa-file-pdf mr-2"></i> Cetak PDF
-                        </a>
-                    </div>
-                @endif
+                <div>
+                    <a href="{{ route('student.report.development.pdf', $report->id) }}" target="_blank"
+                        class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-lg font-bold text-xs text-white uppercase tracking-widest shadow-sm hover:bg-red-700 transition">
+                        <i class="fas fa-file-pdf mr-2"></i> Cetak Hasil (PDF)
+                    </a>
+                </div>
             </div>
 
             {{-- 1. IDENTITAS PESERTA DIDIK & AKADEMIK --}}

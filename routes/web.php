@@ -279,6 +279,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/development-and-growth-report/print/{id}', [StudentDevelopmentReportController::class, 'print'])
         ->name('development-reports.print');
 
+    // 10b. Cetak PDF By Student ID (Otomatis ambil report terbaru / generate langsung)
+    Route::get('/development-and-growth-report/print-student/{student}', [StudentDevelopmentReportController::class, 'printByStudent'])
+        ->name('development-reports.print-by-student');
+
     // 11. API AI Narrative Generator (AJAX)
     Route::post('/development-and-growth-report/generate-ai', [StudentDevelopmentReportController::class, 'generateAiNarrative'])
         ->name('development-reports.generate-ai');

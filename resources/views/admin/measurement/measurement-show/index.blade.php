@@ -228,7 +228,7 @@
                             }
                         @endphp
 
-                        <div class="p-4 border rounded-lg dark:border-gray-700 space-y-2">
+                        <div class="p-4 border rounded-lg dark:border-gray-700 space-y-2 bg-gray-50/50 dark:bg-gray-800/50">
                             <h4 class="font-bold text-indigo-600 dark:text-indigo-400">{{ $label }}
                                 ({{ $key }})
                             </h4>
@@ -245,6 +245,9 @@
                                         class="px-2 py-0.5 text-xs font-semibold rounded-full {{ $status_color_class }}">
                                         {{ $status }}
                                     </span>
+                                </p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700/60 pt-1.5 mt-1">
+                                    <strong>Rentang Acuan WHO:</strong> -2.00 SD s.d. {{ in_array($key, ['TB/U', 'PB/U']) ? '+2.00 SD' : '+1.00 SD' }} (Normal)
                                 </p>
                             </div>
                         </div>

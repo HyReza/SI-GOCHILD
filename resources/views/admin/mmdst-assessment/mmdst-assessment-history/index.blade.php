@@ -170,6 +170,11 @@
                                     <span class="material-symbols-outlined text-sm">visibility</span>
                                     <span>Detail</span>
                                 </a>
+                                <a href="{{ route('development-reports.print-by-student', $student->id) }}" target="_blank"
+                                   class="inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-bold shadow-sm">
+                                    <span class="material-symbols-outlined text-sm">picture_as_pdf</span>
+                                    <span>Cetak</span>
+                                </a>
                                 <a href="${a.edit_url}"
                                    class="inline-flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs">
                                     <span class="material-symbols-outlined text-sm">edit_square</span>

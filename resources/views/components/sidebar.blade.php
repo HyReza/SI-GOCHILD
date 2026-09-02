@@ -332,7 +332,7 @@
                         : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 hover:text-emerald-600' }}">
                 <span
                     class="material-symbols-outlined text-[22px] {{ request()->is('measurement*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">show_chart</span>
-                Laporan Pertumbuhan
+                Pertumbuhan (Fisik)
             </a>
 
             <a href="{{ url('mmdst') }}"
@@ -342,7 +342,7 @@
                         : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 hover:text-emerald-600' }}">
                 <span
                     class="material-symbols-outlined text-[22px] {{ request()->is('mmdst*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">psychology</span>
-                Laporan Perkembangan
+                Perkembangan (MMDST)
             </a>
 
             {{-- Logic cek URL diupdate agar mendeteksi 'development-and-growth-report*' --}}
@@ -373,11 +373,11 @@
                         • Raport Kurikulum
                     </a>
 
-                    {{-- Menu Raport Tumbuh Kembang --}}
+                    {{-- Menu Hasil Tumbuh Kembang --}}
                     <a href="{{ route('development-reports.index') }}"
                         class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
             {{ request()->is('development-and-growth-report*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
-                        • Tumbuh Kembang
+                        • Hasil Tumbuh Kembang
                     </a>
                 </div>
             </div>
@@ -442,7 +442,7 @@
                         : 'text-gray-600 hover:bg-emerald-50 hover:text-emerald-600' }}">
             <span
                 class="material-symbols-outlined text-[22px] {{ request()->is('measurement*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">show_chart</span>
-            Laporan Pertumbuhan
+            Pertumbuhan (Fisik)
         </a>
         <a href="{{ url('mmdst') }}"
             class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group
@@ -451,7 +451,7 @@
                         : 'text-gray-600 hover:bg-emerald-50 hover:text-emerald-600' }}">
             <span
                 class="material-symbols-outlined text-[22px] {{ request()->is('mmdst*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">psychology</span>
-            Laporan Perkembangan
+            Perkembangan (MMDST)
         </a>
 
         {{-- Logic cek URL diupdate agar mendeteksi 'development-and-growth-report*' --}}
@@ -482,11 +482,11 @@
                     • Raport Kurikulum
                 </a>
 
-                {{-- Menu Raport Tumbuh Kembang --}}
+                {{-- Menu Hasil Tumbuh Kembang --}}
                 <a href="{{ route('development-reports.index') }}"
                     class="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:translate-x-1
             {{ request()->is('development-and-growth-report*') ? 'bg-emerald-100 text-emerald-700 font-bold' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50' }}">
-                    • Tumbuh Kembang
+                    • Hasil Tumbuh Kembang
                 </a>
             </div>
         </div>
@@ -533,9 +533,9 @@
                     : 'text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800 hover:text-emerald-600' }}">
                 <span
                     class="material-symbols-outlined text-[22px] {{ request()->is('measurements*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">
-                    Monitoring
+                    monitoring
                 </span>
-                Laporan Pertumbuhan Saya
+                Pertumbuhan (Fisik) Saya
             </a>
             <a href="{{ route('student.development.index') }}"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:translate-x-1 group {{ request()->is('development-reports*')
@@ -545,7 +545,7 @@
                     class="material-symbols-outlined text-[22px] {{ request()->is('development-reports*') ? 'text-white' : 'text-gray-400 group-hover:text-emerald-500' }}">
                     psychology
                 </span>
-                Laporan Perkembangan Saya
+                Perkembangan (MMDST) Saya
             </a>
 
             <a href="{{ route('student.report.history') }}"

@@ -179,33 +179,37 @@
                     <p id="adjustment-note" class="text-sm text-yellow-600 dark:text-yellow-400 mb-4 italic hidden">
                     </p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-                        <div class="p-4 border rounded-lg dark:border-gray-700">
-                            <h4 class="font-bold text-indigo-600 dark:text-indigo-400">Berat Badan vs Umur (BB/U)</h4>
+                        <div class="p-4 border rounded-lg dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                            <h4 class="font-bold text-indigo-600 dark:text-indigo-400 mb-1">Berat Badan vs Umur (BB/U)</h4>
                             <p><strong>Nilai Z-Score:</strong> <span id="zscore_bbu">-</span></p>
                             <p><strong>Kategori SD:</strong> <span id="sd_bbu">-</span></p>
                             <p><strong>Status Gizi:</strong> <span id="status_bbu" class="font-semibold">-</span></p>
+                            <p class="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 text-xs"><strong>Rentang Normal Acuan WHO (-2SD s.d. +1SD):</strong> <span id="range_bbu" class="font-semibold text-emerald-600 dark:text-emerald-400">-</span></p>
                         </div>
-                        <div class="p-4 border rounded-lg dark:border-gray-700">
-                            <h4 id="height_param_label" class="font-bold text-indigo-600 dark:text-indigo-400">Tinggi
+                        <div class="p-4 border rounded-lg dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                            <h4 id="height_param_label" class="font-bold text-indigo-600 dark:text-indigo-400 mb-1">Tinggi
                                 Badan vs Umur (TB/U)</h4>
                             <p><strong>Nilai Z-Score:</strong> <span id="zscore_tbu">-</span></p>
                             <p><strong>Kategori SD:</strong> <span id="sd_tbu">-</span></p>
                             <p><strong>Status Gizi:</strong> <span id="status_tbu" class="font-semibold">-</span></p>
+                            <p class="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 text-xs"><strong>Rentang Normal Acuan WHO (-2SD s.d. +2SD):</strong> <span id="range_tbu" class="font-semibold text-emerald-600 dark:text-emerald-400">-</span></p>
                         </div>
-                        <div class="p-4 border rounded-lg dark:border-gray-700">
-                            <h4 id="weight_height_param_label" class="font-bold text-indigo-600 dark:text-indigo-400">
+                        <div class="p-4 border rounded-lg dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                            <h4 id="weight_height_param_label" class="font-bold text-indigo-600 dark:text-indigo-400 mb-1">
                                 Berat Badan vs Tinggi Badan (BB/TB)</h4>
                             <p><strong>Nilai Z-Score:</strong> <span id="zscore_bbtb">-</span></p>
                             <p><strong>Kategori SD:</strong> <span id="sd_bbtb">-</span></p>
                             <p><strong>Status Gizi:</strong> <span id="status_bbtb" class="font-semibold">-</span></p>
+                            <p class="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 text-xs"><strong>Rentang Normal Acuan WHO (-2SD s.d. +1SD):</strong> <span id="range_bbtb" class="font-semibold text-emerald-600 dark:text-emerald-400">-</span></p>
                         </div>
-                        <div class="p-4 border rounded-lg dark:border-gray-700">
-                            <h4 class="font-bold text-indigo-600 dark:text-indigo-400">Indeks Massa Tubuh vs Umur
+                        <div class="p-4 border rounded-lg dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                            <h4 class="font-bold text-indigo-600 dark:text-indigo-400 mb-1">Indeks Massa Tubuh vs Umur
                                 (IMT/U)</h4>
                             <p><strong>Nilai IMT:</strong> <span id="imt_value">-</span></p>
                             <p><strong>Nilai Z-Score:</strong> <span id="zscore_imtu">-</span></p>
                             <p><strong>Kategori SD:</strong> <span id="sd_imtu">-</span></p>
                             <p><strong>Status Gizi:</strong> <span id="status_imtu" class="font-semibold">-</span></p>
+                            <p class="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 text-xs"><strong>Rentang Normal Acuan WHO (-2SD s.d. +1SD):</strong> <span id="range_imtu" class="font-semibold text-emerald-600 dark:text-emerald-400">-</span></p>
                         </div>
                     </div>
                 </div>
@@ -390,15 +394,26 @@
                 if (!standard || value === null || isNaN(value)) return {
                     zScore: 'N/A',
                     sdCategory: 'Data standar tidak ada',
-                    status: 'Tidak terklasifikasi'
+                    status: 'Tidak terklasifikasi',
+                    normalRange: '-'
                 };
                 const median = parseFloat(standard.median);
                 const sd_plus_1 = parseFloat(standard.plus_1_sd);
+                const sd_plus_2 = parseFloat(standard.plus_2_sd);
                 const sd_minus_1 = parseFloat(standard.minus_1_sd);
+                const sd_minus_2 = parseFloat(standard.minus_2_sd);
+
+                let normalMin = !isNaN(sd_minus_2) ? sd_minus_2.toFixed(1) : '-';
+                let upperSD = (standard.parameter === 'TB/U' || standard.parameter === 'PB/U') ? sd_plus_2 : sd_plus_1;
+                let normalMax = !isNaN(upperSD) ? upperSD.toFixed(1) : '-';
+                let unit = standard.parameter?.includes('BB') ? ' kg' : (standard.parameter?.includes('PB') || standard.parameter?.includes('TB') ? ' cm' : '');
+                let rangeStr = `${normalMin} s.d. ${normalMax}${unit}`;
+
                 if ((sd_plus_1 - median) === 0 || (median - sd_minus_1) === 0) return {
                     zScore: 'N/A',
                     sdCategory: 'Data standar tidak valid',
-                    status: 'Tidak terklasifikasi'
+                    status: 'Tidak terklasifikasi',
+                    normalRange: rangeStr
                 };
                 let zScore = (value >= median) ? (value - median) / (sd_plus_1 - median) : (value - median) / (
                     median - sd_minus_1);
@@ -406,7 +421,8 @@
                 return {
                     zScore: zScoreFixed,
                     sdCategory: getSDCategory(zScoreFixed),
-                    status: getStatus(standard.parameter, zScoreFixed)
+                    status: getStatus(standard.parameter, zScoreFixed),
+                    normalRange: rangeStr
                 };
             }
 
@@ -465,6 +481,8 @@
                 document.getElementById(`zscore_${prefix}`).textContent = result.zScore;
                 document.getElementById(`sd_${prefix}`).textContent = result.sdCategory;
                 document.getElementById(`status_${prefix}`).textContent = result.status;
+                const rangeEl = document.getElementById(`range_${prefix}`);
+                if (rangeEl) rangeEl.textContent = result.normalRange || '-';
                 if (prefix === 'imtu' && bmi !== null) document.getElementById('imt_value').textContent = bmi;
             }
 
@@ -477,6 +495,8 @@
                     document.getElementById(`zscore_${p}`).textContent = text;
                     document.getElementById(`sd_${p}`).textContent = text;
                     document.getElementById(`status_${p}`).textContent = text;
+                    const rEl = document.getElementById(`range_${p}`);
+                    if (rEl) rEl.textContent = text;
                 });
                 document.getElementById('imt_value').textContent = text;
             }

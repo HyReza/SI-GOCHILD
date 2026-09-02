@@ -1,13 +1,13 @@
 <x-app-layout>
-    <x-slot:title>Riwayat Raport: {{ $student->student_name }}</x-slot:title>
+    <x-slot:title>Riwayat Hasil Tumbuh Kembang: {{ $student->student_name }}</x-slot:title>
 
     <x-slot name="header">
         <div class="flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
                 <h2 class="font-semibold text-xl text-gray-800 dark:text-white leading-tight">
-                    {{ __('Riwayat Laporan Perkembangan') }}
+                    {{ __('Riwayat Hasil Pertumbuhan & Perkembangan') }}
                 </h2>
-                <p class="text-sm text-gray-500 mt-1">Kelola data raport tumbuh kembang siswa.</p>
+                <p class="text-sm text-gray-500 mt-1">Kelola & cetak hasil pertumbuhan dan perkembangan siswa.</p>
             </div>
             <div class="flex space-x-3">
                 <a href="{{ route('development-reports.index') }}"
@@ -138,9 +138,10 @@
                                             {{-- PRINT PDF --}}
                                             <a href="{{ route('development-reports.print', $report->id) }}"
                                                 target="_blank"
-                                                class="text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 p-2 rounded-lg transition"
-                                                title="Cetak PDF">
-                                                <i class="fas fa-print"></i>
+                                                class="inline-flex items-center gap-1 text-red-600 hover:text-white bg-red-50 hover:bg-red-600 px-3 py-1.5 rounded-lg text-xs font-bold transition border border-red-200 shadow-sm"
+                                                title="Cetak PDF Raport Tumbuh Kembang">
+                                                <i class="fas fa-file-pdf"></i>
+                                                Cetak PDF
                                             </a>
 
                                             {{-- DELETE --}}

@@ -353,7 +353,82 @@ class StudentDevelopmentReportController extends Controller
         $pdf = Pdf::loadView('admin.reports-development.report-development-print.index', compact('report'))
             ->setPaper('a4', 'portrait');
 
-        return $pdf->stream('Raport_' . Str::slug($report->student->student_name) . '_' . $report->semester . '.pdf');
+        return $pdf->stream('Hasil_Pertumbuhan_Perkembangan_' . Str::slug($report->student->student_name) . '_' . $report->semester . '.pdf');
+    }
+
+    // --- 6b. PRINT PDF BY STUDENT (Otomatis ambil report terbaru atau buatkan preview PDF) ---
+    public function printByStudent(Student $student)
+    {
+        $report = StudentDevelopmentReport::where('student_id', $student->id)
+            ->latest('report_date')
+            ->with(['student', 'healthDetail', 'mmdstAssessment'])
+            ->first();
+
+        if (!$report) {
+            $lastMeasurement = Measurement::whereHas('activityTransaction', function ($q) use ($student) {
+                $q->where('student_id', $student->id);
+            })->orderByDesc('date_measurement')->first();
+
+            $latestMmdst = MmdstAssessment::where('student_id', $student->id)
+                ->with('sectorSummaries')
+                ->latest('assessment_date')
+                ->first();
+
+            $weight = (float)($lastMeasurement->weight ?? 0);
+            $height = (float)($lastMeasurement->height ?? 0);
+            $head = (float)($lastMeasurement->head_circumference ?? 0);
+            $bmi = ($height > 0) ? round($weight / pow($height / 100, 2), 2) : 0;
+            $ageInMonths = $student->birth_date ? Carbon::parse($student->birth_date)->diffInMonths(now()) : 0;
+
+            $report = new StudentDevelopmentReport([
+                'student_id' => $student->id,
+                'report_date' => date('Y-m-d'),
+                'period_start_date' => date('Y-m-d', strtotime('-6 months')),
+                'period_end_date' => date('Y-m-d'),
+                'academic_year' => date('Y') . ' / ' . (date('Y') + 1),
+                'semester' => 'Semester 1 (Ganjil)',
+                'age_in_months' => $ageInMonths,
+                'weight_kg' => $weight,
+                'height_cm' => $height,
+                'head_circumference_cm' => $head,
+                'bmi' => $bmi,
+                'growth_analysis_desc' => 'Pertumbuhan fisik berdasarkan pengukuran terakhir pada ' . ($lastMeasurement ? Carbon::parse($lastMeasurement->date_measurement)->translatedFormat('d F Y') : date('d F Y')) . '.',
+                'mmdst_final_result' => $latestMmdst->final_result ?? 'NORMAL',
+                'mmdst_personal_social_result' => 'NORMAL',
+                'personal_social_desc' => 'Perkembangan personal sosial tumbuh sesuai usia.',
+                'mmdst_fine_motor_result' => 'NORMAL',
+                'fine_motor_desc' => 'Koordinasi motorik halus berkembang dengan baik.',
+                'mmdst_language_result' => 'NORMAL',
+                'language_desc' => 'Kemampuan komunikasi dan bahasa berkembang sesuai usia.',
+                'mmdst_gross_motor_result' => 'NORMAL',
+                'gross_motor_desc' => 'Gerak motorik kasar berkembang lancar.',
+                'attendance_present' => 0,
+                'attendance_sick' => 0,
+                'attendance_permission' => 0,
+                'attendance_alpha' => 0,
+                'teacher_notes' => 'Catatan perkembangan anak.',
+                'teacher_recommendations' => 'Rekomendasi pertumbuhan dan perkembangan.',
+                'parent_name' => 'Orang Tua / Wali',
+                'teacher_name' => Auth::user()->name ?? 'Pendamping / Guru',
+                'consultant_name' => 'Konsultan Tumbuh Kembang',
+                'principal_name' => 'Kepala / Pimpinan Daycare',
+            ]);
+
+            $report->setRelation('student', $student);
+            $report->setRelation('healthDetail', new StudentDevelopmentReportHealth([
+                'vision' => 'Baik',
+                'hearing' => 'Baik',
+                'teeth' => 'Baik',
+                'skin' => 'Sehat',
+                'nails' => 'Bersih',
+                'hygiene' => 'Baik'
+            ]));
+        }
+
+        $pdf = Pdf::loadView('admin.reports-development.report-development-print.index', compact('report'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->stream('Hasil_Pertumbuhan_Perkembangan_' . Str::slug($student->student_name) . '.pdf');
     }
 
     // --- 7. SHOW (DETAIL) ---

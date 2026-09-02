@@ -270,7 +270,7 @@ class StudentReportController extends Controller
         $pdf = Pdf::loadView('admin.reports-development.report-development-print.index', compact('report'))
             ->setPaper('a4', 'portrait');
 
-        return $pdf->download('Raport_Tumbung_Kembang_' . Str::slug($report->student->student_name) . '_' . $report->semester . '.pdf');
+        return $pdf->stream('Hasil_Pertumbuhan_Perkembangan_' . Str::slug($report->student->student_name) . '_' . $report->semester . '.pdf');
     }
 
     /*

@@ -6,15 +6,22 @@
             <h2 class="font-semibold text-xl text-gray-800 dark:text-white leading-tight">
                 Grafik Pertumbuhan: {{ $student->student_name }}
             </h2>
-            <a href="{{ route('measurement.history', $activityTransaction) }}"
-                class="inline-flex items-center gap-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-600">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Kembali ke Riwayat
-            </a>
+            <div class="flex items-center gap-3">
+                <a href="{{ route('development-reports.print-by-student', $student->id) }}" target="_blank"
+                    class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">
+                    <span class="material-symbols-outlined text-base">picture_as_pdf</span>
+                    Cetak PDF Tumbuh Kembang
+                </a>
+                <a href="{{ route('measurement.history', $activityTransaction) }}"
+                    class="inline-flex items-center gap-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Kembali ke Riwayat
+                </a>
+            </div>
         </div>
     </x-slot>
 
@@ -39,6 +46,26 @@
                 <div class="border-b dark:border-gray-700 pb-4 mb-4">
                     <h3 class="text-md font-semibold text-gray-800 dark:text-white mb-2">Pilih Jenis Grafik</h3>
                     <div id="chart-buttons" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                {{-- Legenda Indikator Standar KMS --}}
+                <div class="flex flex-wrap items-center justify-center gap-4 mb-4 text-xs font-medium bg-gray-50 dark:bg-gray-800/60 p-3 rounded-lg border dark:border-gray-700">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block shadow-sm"></span>
+                        <span class="text-gray-700 dark:text-gray-300">Zona Normal (-2SD s.d. +1SD / +2SD)</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-full bg-amber-500 inline-block shadow-sm"></span>
+                        <span class="text-gray-700 dark:text-gray-300">Zona Waspada / Risiko</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-full bg-red-500 inline-block shadow-sm"></span>
+                        <span class="text-gray-700 dark:text-gray-300">Zona Kritis (&lt; -3SD / &gt; +3SD)</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-full bg-blue-500 inline-block shadow-sm"></span>
+                        <span class="text-gray-700 dark:text-gray-300 font-semibold">Garis Pengukuran Anak</span>
+                    </div>
                 </div>
 
                 <div>
@@ -158,7 +185,7 @@
                             beginAtZero: false,
                             ticks: {
                                 autoSkip: false
-                            } // Dibiarkan kosong untuk diisi logika dinamis
+                            }
                         }
                     },
                     plugins: {
@@ -175,16 +202,17 @@
                                             return null;
                                         }
                                         const age = getFullAge(studentBirthDate, point.date);
-                                        const ageString = `${age.years} thn, ${age.months} bln`;
+                                        const ageString = `${age.years} thn, ${age.months} bln, ${age.days} hr`;
                                         const chartKey = config.chartKey;
                                         const sd = point.sd_category ? (point.sd_category[chartKey] ||
                                             'N/A') : 'N/A';
                                         const status = point.status_gizi ? (point.status_gizi[chartKey] ||
                                             'N/A') : 'N/A';
+                                        const unit = (config.yKey === 'weight') ? ' kg' : ((config.yKey === 'height') ? ' cm' : '');
                                         return [
                                             `Tanggal: ${new Date(point.date).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'})}`,
                                             `Umur: ${ageString}`,
-                                            `Nilai: ${point[config.yKey]}`,
+                                            `Nilai Ukur: ${point[config.yKey]}${unit}`,
                                             `Kategori SD: ${sd}`,
                                             `Status Gizi: ${status}`
                                         ];
@@ -204,17 +232,30 @@
                     delete chartOptions.scales.y.ticks.stepSize;
                 }
 
-                switch (config.chartKey) {
-                    case 'BB/U':
-                    case 'IMT/U':
-                        chartOptions.scales.x.max = 60;
-                        break;
-                    case 'PB/U':
-                        chartOptions.scales.x.max = 24;
-                        break;
-                    case 'TB/U':
-                        if (chartOptions.scales.x.min < 24) chartOptions.scales.x.min = 24;
-                        break;
+                // Logika Auto-scaling Dinamis Sumbu X menyesuaikan data anak
+                if (config.studentPoints && config.studentPoints.length > 0) {
+                    const validStudentPoints = config.studentPoints.filter(p => p && !isNaN(p[config.yKey]));
+                    if (validStudentPoints.length > 0) {
+                        const studentXValues = validStudentPoints.map(p => parseFloat(p[config.xKey])).filter(v => !isNaN(v));
+                        const maxXVal = Math.max(...studentXValues);
+                        const minXVal = Math.min(...studentXValues);
+
+                        if (config.chartKey === 'BB/U' || config.chartKey === 'IMT/U') {
+                            chartOptions.scales.x.min = Math.max(0, Math.floor(minXVal - 1));
+                            chartOptions.scales.x.max = Math.min(60, Math.max(maxXVal + 6, 24));
+                        } else if (config.chartKey === 'PB/U') {
+                            chartOptions.scales.x.min = 0;
+                            chartOptions.scales.x.max = 24;
+                        } else if (config.chartKey === 'TB/U') {
+                            chartOptions.scales.x.min = 24;
+                            chartOptions.scales.x.max = Math.min(60, Math.max(maxXVal + 6, 36));
+                        } else if (config.chartKey === 'PB/BB' || config.chartKey === 'TB/BB') {
+                            if (config.standard?.min !== undefined && config.standard?.max !== undefined) {
+                                chartOptions.scales.x.min = Math.floor(Math.max(config.standard.min, minXVal - 3));
+                                chartOptions.scales.x.max = Math.ceil(Math.min(config.standard.max, maxXVal + 3));
+                            }
+                        }
+                    }
                 }
 
                 currentChart = new Chart(canvas, {
